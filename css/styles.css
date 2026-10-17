@@ -18,7 +18,7 @@
 @media(max-width:450px){.hero h1{font-size:clamp(39px,10vw,45px)}.hero-buttons{display:grid;grid-template-columns:1fr}.hero-visual{height:285px}.hero-chip.chip-bottom{bottom:3px!important}.hero-chip.chip-top{top:0!important}.hero-chip small{display:none}.hero-bottom>a{display:none}.hero-trust{display:grid;gap:8px}.benefits-wrap{grid-template-columns:1fr 1fr;gap:13px}.benefits-wrap div{align-items:flex-start}.benefits-wrap .icon{flex-shrink:0}.about-visual{min-height:288px}.about-image img{height:258px}.about-marker{max-width:260px}.gallery-grid{grid-auto-rows:150px}.gallery-caption strong{font-size:12px}.gallery-caption small{letter-spacing:.5px}.form-row{grid-template-columns:1fr;gap:0}.quote-card{padding:23px 18px}.quote-top h3{font-size:23px}.why-grid{grid-template-columns:1fr}.footer-main{grid-template-columns:1fr 1fr}.footer-contact{grid-column:span 2}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
 
-/* 2026 VIZCAM brand: preserve the complete 3:2 artwork across breakpoints. */
+/* 2026 VIZCAM brand: preserve complete logo across breakpoints. */
 .brand{width:168px;height:76px;padding:3px 4px;background:#fff;border-radius:9px}
 .brand img{width:100%;height:100%;object-fit:contain}
 .footer-logo{width:180px;height:120px}

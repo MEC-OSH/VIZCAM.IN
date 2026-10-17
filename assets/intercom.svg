@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="410" viewBox="0 0 640 410" role="img" aria-label="intercom technology solution"><defs>
+ <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#091a31"/><stop offset=".55" stop-color="#06101d"/><stop offset="1" stop-color="#092444"/></linearGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#eff8ff"/><stop offset=".45" stop-color="#a8bcd1"/><stop offset="1" stop-color="#506784"/></linearGradient>
+ <linearGradient id="screen" x2="1" y2="1"><stop stop-color="#142b55"/><stop offset="1" stop-color="#0b132c"/></linearGradient>
+ <radialGradient id="aura"><stop stop-color="#129afe" stop-opacity=".34"/><stop offset="1" stop-color="#129afe" stop-opacity="0"/></radialGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
+ <filter id="shadow"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000714" flood-opacity=".7"/></filter>
+ </defs>
+ <rect width="640" height="410" fill="url(#bg)"/>
+ <circle cx="440" cy="205" r="270" fill="url(#aura)"/>
+ <g stroke="#31a6f7" stroke-width="1" opacity=".1"><path d="M0 0V410"/><path d="M48 0V410"/><path d="M96 0V410"/><path d="M144 0V410"/><path d="M192 0V410"/><path d="M240 0V410"/><path d="M288 0V410"/><path d="M336 0V410"/><path d="M384 0V410"/><path d="M432 0V410"/><path d="M480 0V410"/><path d="M528 0V410"/><path d="M576 0V410"/><path d="M624 0V410"/><path d="M0 0H640"/><path d="M0 48H640"/><path d="M0 96H640"/><path d="M0 144H640"/><path d="M0 192H640"/><path d="M0 240H640"/><path d="M0 288H640"/><path d="M0 336H640"/><path d="M0 384H640"/></g>
+ <path d="M0 364 265 100 640 100" stroke="#129afe" stroke-opacity=".16" stroke-width="1.4" fill="none"/>
+ <circle cx="320" cy="200" r="145" stroke="#129afe" stroke-opacity=".21" fill="none"/><circle cx="320" cy="200" r="111" stroke="#129afe" stroke-opacity=".15" stroke-dasharray="7 10" fill="none"/>
+ <g opacity=".8"><path d="M26 36h42M26 36v38M614 335v38h-42" stroke="#129afe" stroke-width="3" fill="none"/></g>
+ <g filter="url(#shadow)"><rect x="169" y="71" width="311" height="268" rx="15" fill="#c0d2e0" stroke="#f0f8ff" stroke-width="4"/><rect x="192" y="92" width="267" height="194" rx="8" fill="#07162c"/><rect x="202" y="100" width="246" height="175" rx="5" fill="url(#screen)"/><path d="M202 221Q287 123 367 190T448 165V275H202" fill="#193353"/><circle cx="327" cy="150" r="29" fill="#8ca8c2"/><path d="M267 253q0-73 60-73t60 73" fill="#5a85ad"/><circle cx="256" cy="313" r="11" fill="#129fff"/><circle cx="324" cy="313" r="11" fill="#0c233a" stroke="#748da4" stroke-width="3"/><circle cx="391" cy="313" r="11" fill="#0c233a" stroke="#748da4" stroke-width="3"/></g><g stroke="#29b4ff" fill="none" stroke-width="3" opacity=".8"><path d="M500 141q28 38 0 76M522 120q49 59 0 120"/></g></svg>

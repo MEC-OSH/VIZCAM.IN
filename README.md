@@ -4,8 +4,7 @@ Separate GitHub Pages-ready copy of the VIZCAM security business website.
 
 Repository: https://github.com/MEC-OSH/VIZCAM.IN
 Website: https://www.vizcam.in
-Service email: service@vizcam.me
-General enquiries: info@vizcam.me
+Service and general enquiries email: service@vizcam.in
 Phone / WhatsApp: +91 89438 54151
 
 ## Publishing
@@ -21,5 +20,5 @@ Phone / WhatsApp: +91 89438 54151
 6. After DNS verification, enable Enforce HTTPS in GitHub Pages.
 7. Check site, links, navigation, and WhatsApp quotation form.
 
-The @vizcam.me email addresses are intentional; mailboxes require an independent email provider.
+The service@vizcam.in address must be configured with an email provider; changing the website only changes displayed contact information.
 Gallery graphics are illustrative, not evidence of completed projects.

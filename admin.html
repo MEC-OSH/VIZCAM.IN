@@ -113,6 +113,7 @@
  .record-tools{flex-wrap:wrap} .record-tools #overviewNew{border:0;background:#0867c8;color:white}
  .cloud-working{opacity:.65;pointer-events:none}
  @media print{.browser-export{display:none!important}}
+.pin-setup{margin-top:18px;border:1px solid #d6e2ee;border-radius:9px;padding:11px;color:#47627a;font-size:12px}.pin-setup summary{cursor:pointer;font-weight:800;color:#175d98}.pin-setup p{margin:10px 0;font-size:12px}
 </style>
 </head>
 <body>
@@ -123,21 +124,14 @@
 <div class="home-view" id="homeView">
  <div class="admin-landing"><img src="assets/vizcam-logo-2026.webp" alt="VIZCAM logo"><span class="pill">VIZCAM ADMIN</span><h1>Quotation Generator</h1><p>Prepare branded, itemized CCTV and security system quotations for VIZCAM customers.</p><div class="home-cta"><button class="action action-primary" id="heroOpenLogin" type="button">Enter PIN →</button><button class="action action-white" id="quickPreview" type="button">Open Quotation Generator</button><a class="action action-white" href="/">Back to Website</a></div></div>
 </div>
-<div class="backdrop" id="loginBackdrop" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-  <div class="login-card">
-    <div class="modal-top"><div><span class="pill">VIZCAM · SECURE CLOUD</span><h2 id="loginTitle">Admin Sign-In</h2></div><button type="button" id="closeLogin" aria-label="Close sign-in dialog">×</button></div>
-    <p>Access the private quotation dashboard through a secure sign-in link sent to the authorized mailbox.</p>
-    <form id="emailForm">
-      <label class="login-label" for="adminEmail">Administrator Email</label>
-      <input class="login-input" id="adminEmail" type="email" value="info@vizcam.in" readonly autocomplete="username">
-      <button type="submit" class="action action-primary pin-submit" id="sendMagicLink">✉ Send Secure Sign-In Link</button>
-      <p id="pinError" class="pin-error" role="status" aria-live="polite"></p>
-    </form>
-    <div class="security-note"><strong>Private cloud:</strong> Only the verified VIZCAM administrator can access customer quotations. Old browser quotations are preserved until imported.</div>
-    <button type="button" class="browser-export" id="exportLegacyPrelogin">⬇ Export Old Browser Quotations</button>
-    <p class="login-foot"><a href="/">Return to VIZCAM website</a></p>
-  </div>
-</div>
+<div class="backdrop" id="loginBackdrop" role="dialog" aria-modal="true" aria-labelledby="loginTitle"><div class="login-card">
+<div class="modal-top"><div><span class="pill">VIZCAM · SECURE CLOUD</span><h2 id="loginTitle">Admin PIN</h2></div><button type="button" id="closeLogin" aria-label="Close login">×</button></div>
+<p>Enter your PIN to open the quotation dashboard.</p>
+<form id="pinForm"><label class="login-label" for="adminPin">Enter PIN</label><input class="login-input pin-input" id="adminPin" type="password" inputmode="numeric" autocomplete="current-password" required minlength="6" maxlength="64" placeholder="Enter PIN"><button class="action action-primary pin-submit" id="enterAdmin" type="submit">Unlock Admin →</button><p class="pin-error" id="pinError" role="status" aria-live="polite"></p></form>
+<details id="pinSetup" class="pin-setup"><summary>First-time PIN activation</summary><p>Verify the authorized administrator email once to activate your PIN. Future logins use only the PIN.</p><button type="button" class="browser-export" id="activatePin">Send One-Time Activation Link</button>
+<form id="setPinForm" hidden><label class="login-label" for="newPin">Choose PIN</label><input class="login-input" id="newPin" type="password" inputmode="numeric" autocomplete="new-password" minlength="6" maxlength="64" required><button type="submit" class="action action-primary pin-submit">Set PIN</button></form></details>
+<button type="button" class="browser-export" id="exportLegacyPrelogin">⬇ Export Old Browser Quotations</button>
+<p class="login-foot"><a href="/">Return to VIZCAM website</a></p></div></div>
 <div class="admin-view" id="adminView">
   <aside class="admin-side" aria-label="Admin navigation"><div class="side-heading">VIZCAM ADMIN</div>
     <button type="button" class="side-entry active" id="overviewLink"><span class="side-icon">▦</span> Overview</button>
@@ -223,6 +217,7 @@
   let cloudAccess=false;
   function openModal(){
     modal.classList.add('show');
+    revealPinSetup();
     if(!$('pinError').textContent.trim())$('pinError').textContent='';
   }
   function closeModal(){modal.classList.remove('show')}
@@ -280,21 +275,48 @@
   $('openLogin').addEventListener('click',openModal);
   $('heroOpenLogin').addEventListener('click',openModal);
   $('quickPreview').addEventListener('click',openModal);
-  $('emailForm').addEventListener('submit',async e=>{
+  $('pinForm').addEventListener('submit',async e=>{
     e.preventDefault();
-    if(!cloud){$('pinError').textContent='Unable to load secure login. Check your internet and reload.';return}
-    const button=$('sendMagicLink');button.disabled=true;
-    $('pinError').textContent='Sending secure sign-in link...';
+    if(!cloud){$('pinError').textContent='Cloud login unavailable. Check your connection.';return}
+    const button=$('enterAdmin');button.disabled=true;
     try{
-      const {error}=await cloud.auth.signInWithOtp({
-        email:CLOUD_EMAIL,
-        options:{emailRedirectTo:'https://www.vizcam.in/admin.html',shouldCreateUser:true}
-      });
+      const {error}=await cloud.auth.signInWithPassword({email:CLOUD_EMAIL,password:$('adminPin').value});
       if(error)throw error;
-      $('pinError').textContent='Link requested. Check info@vizcam.in, including Spam. Open the link on the device where you want to sign in.';
-    }catch(err){$('pinError').textContent='Email link failed: '+(err.message||'Try again later')}
+      $('adminPin').value='';$('pinError').textContent='';
+      await showAdmin();
+    }catch(err){$('pinError').textContent='Invalid PIN or PIN not yet activated. Use first-time activation if needed.';$('adminPin').value=''}
     finally{button.disabled=false}
   });
+  $('activatePin').addEventListener('click',async()=>{
+    if(!cloud)return;
+    const button=$('activatePin');button.disabled=true;
+    try{
+      const {error}=await cloud.auth.signInWithOtp({email:CLOUD_EMAIL,options:{emailRedirectTo:'https://www.vizcam.in/admin.html',shouldCreateUser:false}});
+      if(error)throw error;
+      $('pinError').textContent='Check info@vizcam.in for the one-time activation link.';
+    }catch(err){$('pinError').textContent=err.message||'Could not send activation email'}
+    finally{button.disabled=false}
+  });
+  $('setPinForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const pin=$('newPin').value;
+    if(!/^[0-9]{6,64}$/.test(pin)){$('pinError').textContent='Enter a numeric PIN with at least 6 digits.';return}
+    const {data,error}=await cloud.auth.getUser();
+    if(error||data?.user?.email?.toLowerCase()!==CLOUD_EMAIL){$('pinError').textContent='First verify info@vizcam.in using the activation link.';return}
+    const result=await cloud.auth.updateUser({password:pin});
+    if(result.error){$('pinError').textContent='PIN activation failed: '+result.error.message;return}
+    $('newPin').value='';$('pinSetup').open=false;
+    await showAdmin();
+  });
+  async function revealPinSetup(){
+    if(!cloud)return;
+    try{
+      const {data}=await cloud.auth.getUser();
+      if(data?.user?.email?.toLowerCase()===CLOUD_EMAIL){
+        $('setPinForm').hidden=false;$('pinSetup').open=true;
+      }
+    }catch(e){}
+  }
   $('exportLegacyPrelogin').addEventListener('click',()=>{
     const legacy=loadRecords();
     if(!legacy.length){$('pinError').textContent='No old browser quotations were found on this device.';return}
@@ -304,7 +326,7 @@
   });
   // Avoid calling Supabase Auth methods while it holds an auth-state lock.
   if(cloud)cloud.auth.onAuthStateChange((event,session)=>{
-    if(event==='SIGNED_IN'&&session){setTimeout(()=>{if(!cloudAccess)showAdmin()},0)}
+    if(event==='SIGNED_IN'&&session){setTimeout(()=>{if(!cloudAccess){showAdmin();revealPinSetup()}},0)}
     if(event==='SIGNED_OUT'){cloudAccess=false;records=[];admin.classList.remove('open');home.style.display='block'}
   });
   $('closeLogin').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
@@ -649,7 +671,7 @@
   renderOverview();
   if(cloud){
     cloud.auth.getSession().then(({data})=>{
-      if(data?.session)showAdmin();else openModal();
+      if(data?.session){showAdmin();revealPinSetup()}else openModal();
     }).catch(()=>openModal());
   }else{
     openModal();

@@ -188,7 +188,7 @@
         <div class="quote-info"><div><h4>PREPARED FOR</h4><strong id="printClient">Sample Customer (Demo)</strong><small id="printClientPhone"></small><small id="printClientLocation">Manjeri, Kerala</small><small id="printClientGST"></small></div><dl class="quote-meta"><div><dt>Quotation No.</dt><dd id="printNumber">VC-Q-2026-001</dd></div><div><dt>Date</dt><dd id="printDate">19 Oct 2026</dd></div><div><dt>Valid Until</dt><dd id="printValid">03 Nov 2026</dd></div><div><dt>Currency</dt><dd>Indian Rupees (INR)</dd></div></dl></div>
         <table class="quote-table"><thead><tr><th style="width:7%">#</th><th style="width:43%;text-align:left">Description</th><th style="width:12%">Qty</th><th style="width:17%;text-align:right">Rate (₹)</th><th style="width:21%">Amount (₹)</th></tr></thead><tbody id="printItems"></tbody></table>
         <div class="quote-totals"><div class="quote-total-row"><span>Subtotal</span><strong id="printSubtotal">₹0</strong></div><div class="quote-total-row" id="printDiscountRow"><span>Discount</span><strong id="printDiscount">−₹0</strong></div><div class="quote-total-row" id="printTaxRow"><span id="printTaxLabel">GST (0%)</span><strong id="printTax">₹0</strong></div><div class="quote-total-row quote-total-final"><span>Grand Total</span><strong id="printTotal">₹0</strong></div></div>
-        <div class="quote-terms"><h4>TERMS & CONDITIONS</h4><p id="printTerms"></p></div><div class="quote-bottom"><small>Thank you for choosing VIZCAM.</small><div class="sign-off"><div class="approval-images"><img class="quotation-stamp" src="assets/vizcam-quotation-stamp.svg" alt="VIZCAM company stamp"><img class="quotation-signature" src="assets/vizcam-original-signature.webp" alt="Authorized signature"></div><div class="sign-line"></div><span>For VIZCAM<br>Authorized Signatory</span></div></div>
+        <div class="quote-terms"><h4>TERMS & CONDITIONS</h4><p id="printTerms"></p></div><div class="quote-bottom"><small>Thank you for choosing VIZCAM.</small><div class="sign-off"><div class="approval-images"><img class="quotation-stamp" src="assets/vizcam-quotation-stamp.svg" alt="VIZCAM company stamp"><img class="quotation-signature" src="assets/vizcam-sahil-signature-2026.webp" alt="Sahil handwritten authorized signature"></div><div class="sign-line"></div><span>For VIZCAM<br>Authorized Signatory</span></div></div>
       </article><div class="quote-preview-bottom"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div>
     </section></div>
 </div>
@@ -426,6 +426,23 @@
   }
   $('closeShare').addEventListener('click',()=>$('quoteShareDialog').close());
   $('quoteShareDialog').addEventListener('click',e=>{if(e.target===$('quoteShareDialog'))$('quoteShareDialog').close()});
+  // html2canvas can omit external SVG stamps while exporting a PDF. Convert
+  // stamp and signature to browser-generated PNGs first, then restore images.
+  async function pdfSafeImageData(img){
+    if(img.decode)await img.decode();
+    if(!img.naturalWidth||!img.naturalHeight)throw new Error('Quotation image has not loaded: '+img.alt);
+    const canvas=document.createElement('canvas');
+    const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+    canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    const context=canvas.getContext('2d');
+    if(!context)throw new Error('This browser cannot prepare quotation images.');
+    context.clearRect(0,0,canvas.width,canvas.height);
+    context.drawImage(img,0,0,canvas.width,canvas.height);
+    const png=canvas.toDataURL('image/png');
+    if(!png.startsWith('data:image/png;base64,'))throw new Error('Image could not be prepared for PDF.');
+    return png;
+  }
   async function getPdfFile(){
     if(!window.html2pdf){
       await new Promise((resolve,reject)=>{
@@ -436,16 +453,27 @@
       });
     }
     if(!window.html2pdf)throw new Error('PDF export not available.');
-    await Promise.all(Array.from($('quotePaper').querySelectorAll('img')).map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve()));
-    const blob=await window.html2pdf().set({
-      margin:6,
-      image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['css','legacy'],avoid:['tr','.quote-bottom','.quote-terms']}
-    }).from($('quotePaper')).outputPdf('blob');
-    const name=($('quoteNumber').value||'VIZCAM-Quotation').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
-    return new File([blob],name,{type:'application/pdf'});
+    const paper=$('quotePaper');
+    const approvals=Array.from(paper.querySelectorAll('.quotation-stamp,.quotation-signature'));
+    const originals=approvals.map(img=>({img,src:img.getAttribute('src')}));
+    try{
+      // If a stamp or signature cannot be prepared, fail visibly instead of silently omitting it.
+      const dataUrls=[];
+      for(const img of approvals)dataUrls.push(await pdfSafeImageData(img));
+      approvals.forEach((img,i)=>{img.src=dataUrls[i]});
+      await Promise.all(Array.from(paper.querySelectorAll('img')).map(img=>img.decode ? img.decode():Promise.resolve()));
+      const blob=await window.html2pdf().set({
+        margin:6,
+        image:{type:'jpeg',quality:0.98},
+        html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+        pagebreak:{mode:['css','legacy'],avoid:['tr','.quote-bottom','.quote-terms','.approval-images','.sign-off']}
+      }).from(paper).outputPdf('blob');
+      const name=($('quoteNumber').value||'VIZCAM-Quotation').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+      return new File([blob],name,{type:'application/pdf'});
+    }finally{
+      originals.forEach(item=>{item.img.setAttribute('src',item.src)});
+    }
   }
   function downloadFile(file){
     const url=URL.createObjectURL(file);

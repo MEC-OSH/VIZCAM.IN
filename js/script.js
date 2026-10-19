@@ -36,6 +36,42 @@
       if (!win) window.location.assign(url);
     });
   }
+
+  // A separate gallery per card; future products only need data-product-slider markup.
+  const prefersReducedMotion=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-product-slider]').forEach(function(slider){
+    const slides=Array.from(slider.querySelectorAll('[data-product-slide]'));
+    const dots=Array.from(slider.querySelectorAll('[data-slide-dot]'));
+    if(slides.length<2)return;
+    let current=0;
+    let clock=null;
+    function showSlide(index){
+      current=(index+slides.length)%slides.length;
+      slides.forEach(function(img,i){img.hidden=i!==current});
+      dots.forEach(function(dot,i){
+        dot.classList.toggle('is-active',i===current);
+        dot.setAttribute('aria-pressed',String(i===current));
+      });
+    }
+    function pause(){if(clock!==null){clearInterval(clock);clock=null}}
+    function play(){
+      pause();
+      if(!prefersReducedMotion && !document.hidden && !slider.matches(':hover') && !slider.contains(document.activeElement)){
+        clock=setInterval(function(){showSlide(current+1)},4500);
+      }
+    }
+    slider.querySelector('[data-slide-prev]')?.addEventListener('click',function(){pause();showSlide(current-1)});
+    slider.querySelector('[data-slide-next]')?.addEventListener('click',function(){pause();showSlide(current+1)});
+    dots.forEach(function(dot,i){dot.addEventListener('click',function(){pause();showSlide(i)})});
+    slider.addEventListener('mouseenter',pause);
+    slider.addEventListener('mouseleave',play);
+    slider.addEventListener('focusin',pause);
+    slider.addEventListener('focusout',function(){window.setTimeout(play,0)});
+    document.addEventListener('visibilitychange',function(){if(document.hidden)pause();else play()});
+    showSlide(0);
+    play();
+  });
+
   // Native, keyboard-accessible product details modal.
   let productDialogOpener=null;
   document.querySelectorAll('[data-product-details]').forEach(function(button){

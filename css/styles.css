@@ -325,3 +325,25 @@ body:has(.vizcam-product-modal[open]){overflow:hidden}
  .vizcam-product-modal-features li{font-size:.78rem}
 }
 @media(prefers-reduced-motion:reduce){.vizcam-product-card{transition:none}}
+
+/* Slideshow controls work independently on every product card, including future cards. */
+.vizcam-product-slider{position:relative;isolation:isolate;overflow:hidden}
+.vizcam-product-slides{position:absolute;inset:0}
+.vizcam-product-slides img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:10px}
+.vizcam-product-slides img[hidden]{display:none!important}
+.vizcam-product-slider-arrow{position:absolute;top:50%;z-index:1;transform:translateY(-50%);border:1px solid #d5e4f2;background:rgba(255,255,255,.94);color:#164e8a;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;font-size:26px;line-height:1;box-shadow:0 4px 15px rgba(7,35,61,.12)}
+.vizcam-product-slider-prev{left:8px}
+.vizcam-product-slider-next{right:8px}
+.vizcam-product-slider-arrow:hover{background:#eaf4ff}
+.vizcam-product-slider-arrow:focus-visible,.vizcam-product-slider-dots button:focus-visible{outline:3px solid #1267c9;outline-offset:2px}
+.vizcam-product-slider-dots{display:flex;align-items:center;justify-content:center;gap:7px;position:absolute;bottom:9px;left:50%;transform:translateX(-50%);padding:6px 9px;border-radius:25px;background:rgba(255,255,255,.92);z-index:2}
+.vizcam-product-slider-dots button{width:9px;height:9px;border:0;border-radius:100%;background:#a7bbce;cursor:pointer;padding:0}
+.vizcam-product-slider-dots button.is-active{background:#1167be;transform:scale(1.2)}
+@media(max-width:680px){
+ .vizcam-product-slider-arrow{width:27px;height:27px;font-size:22px}
+ .vizcam-product-slider-prev{left:3px}
+ .vizcam-product-slider-next{right:3px}
+ .vizcam-product-slides img{padding:7px}
+ .vizcam-product-slider-dots{bottom:5px;padding:5px 7px}
+ .vizcam-product-slider-dots button{width:7px;height:7px}
+}

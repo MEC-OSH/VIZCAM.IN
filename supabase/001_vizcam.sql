@@ -56,7 +56,7 @@ CREATE POLICY vizcam_admin_update ON public.vizcam_quotations
 -- The elevated allocator lives in a non-exposed schema.
 CREATE OR REPLACE FUNCTION private.allocate_vizcam_quote_number(p_quote_day date)
 RETURNS text LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = '' AS $$
-DECLARE n bigint;
+DECLARE n bigint; candidate text;
 BEGIN
  IF (SELECT auth.uid()) IS NULL OR NOT private.is_vizcam_admin() THEN
   RAISE EXCEPTION 'Administrator access required' USING errcode='42501';
@@ -66,8 +66,15 @@ BEGIN
  VALUES (p_quote_day,1)
  ON CONFLICT(quote_day) DO UPDATE SET last_number=private.vizcam_daily_sequences.last_number+1
  RETURNING last_number INTO n;
- RETURN 'VC-Q-'||pg_catalog.to_char(p_quote_day,'DDMMYY')||'-'||
- CASE WHEN n<10000 THEN pg_catalog.lpad(n::text,4,'0') ELSE n::text END;
+ -- Imported older quotations may already occupy a sequence number.
+ LOOP
+  candidate := 'VC-Q-'||pg_catalog.to_char(p_quote_day,'DDMMYY')||'-'||
+     CASE WHEN n<10000 THEN pg_catalog.lpad(n::text,4,'0') ELSE n::text END;
+  EXIT WHEN NOT EXISTS (SELECT 1 FROM public.vizcam_quotations WHERE id=candidate);
+  UPDATE private.vizcam_daily_sequences SET last_number=last_number+1
+    WHERE quote_day=p_quote_day RETURNING last_number INTO n;
+ END LOOP;
+ RETURN candidate;
 END;
 $$;
 REVOKE ALL ON FUNCTION private.allocate_vizcam_quote_number(date) FROM PUBLIC,anon,authenticated;

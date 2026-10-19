@@ -265,3 +265,29 @@ p{color:var(--muted)}
   outline:3px solid #1976ce;
   outline-offset:-3px;
 }
+
+/* Trueview product listing · VIZCAM */
+.vizcam-products-section{background:#f2f7fc;scroll-margin-top:86px}
+.vizcam-products-intro{margin-bottom:24px}
+.vizcam-product{display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);gap:30px;align-items:center;background:#fff;border:1px solid #e1eaf2;border-radius:20px;padding:24px;box-shadow:0 18px 52px rgba(20,62,105,.08)}
+.vizcam-product-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:12px;min-width:0}
+.vizcam-product-photo{margin:0;border:1px solid #dce8f2;border-radius:14px;overflow:hidden;background:#eef4f9}
+.vizcam-product-photo a{display:flex;align-items:center;justify-content:center;height:340px;max-height:440px;padding:9px;cursor:zoom-in}
+.vizcam-product-photo a:focus-visible{outline:3px solid #1466b0;outline-offset:-3px}
+.vizcam-product-photo img{display:block;width:100%;height:100%;max-height:418px;object-fit:contain;transition:transform .2s}
+.vizcam-product-photo a:hover img{transform:scale(1.035)}
+.vizcam-product-photo figcaption{font-size:.76rem;font-weight:700;text-align:center;color:#54718b;padding:10px;background:#fff;border-top:1px solid #e1eaf2}
+.vizcam-product-kicker{display:flex;gap:9px;align-items:center;color:#246aa9;font-weight:800;font-size:.72rem;letter-spacing:.12em}
+.vizcam-product-dot{height:9px;width:9px;border-radius:50%;background:#1da86c;flex:none}
+.vizcam-product-info h3{font-size:clamp(1.55rem,2.7vw,2.35rem);line-height:1.2;letter-spacing:-.025em;color:#123754;margin:13px 0 10px}
+.vizcam-product-subtitle{font-weight:800;color:#1768b7;font-size:.88rem;margin:0 0 11px}
+.vizcam-product-description{line-height:1.7;color:#51677b;font-size:.95rem;margin:0 0 19px}
+.vizcam-product-info h4{font-size:.95rem;color:#193c5a;margin:0 0 10px}
+.vizcam-product-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;padding:0;margin:0 0 24px;list-style:none}
+.vizcam-product-features li{position:relative;padding-left:17px;line-height:1.45;color:#345771;font-size:.81rem}
+.vizcam-product-features li::before{content:"✓";position:absolute;top:0;left:0;color:#16854f;font-weight:900}
+.vizcam-product-buy{background:#128b4d;color:white;border-color:#128b4d;width:100%;font-size:1rem;gap:10px}
+.vizcam-product-buy:hover{background:#0c6d3b;color:#fff}
+.vizcam-product-hint{font-size:.76rem;color:#688094;line-height:1.5;margin:12px 0 0}
+@media(max-width:900px){.vizcam-product{grid-template-columns:1fr;gap:24px}.vizcam-product-photo a{height:300px;max-height:400px}}
+@media(max-width:580px){.vizcam-product{padding:15px;border-radius:15px;gap:20px}.vizcam-product-gallery{gap:8px}.vizcam-product-photo a{height:235px;max-height:265px;padding:5px}.vizcam-product-photo figcaption{font-size:.66rem;padding:8px 4px}.vizcam-product-features{gap:9px 8px}.vizcam-product-features li{font-size:.76rem}}

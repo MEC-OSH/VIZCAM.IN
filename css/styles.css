@@ -202,3 +202,20 @@ p{color:var(--muted)}
  .floating-whatsapp{right:14px;bottom:14px;padding:12px 15px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+
+/* VIZCAM leadership section */
+.leadership-section {background:#fff;}
+.leadership-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:stretch;}
+.leader-card {background:#fff;border:1px solid #e2e7ec;border-radius:14px;overflow:hidden;box-shadow:0 12px 30px rgba(17,47,75,.05);display:flex;flex-direction:column;}
+.leader-photo {background:#e9edf0;overflow:hidden;aspect-ratio:4/3;}
+.leader-photo img {display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
+.leader-content {padding:27px 29px 31px;flex:1;}
+.leader-role {display:block;font-size:.72rem;font-weight:800;letter-spacing:.11em;color:#1265c8;margin-bottom:10px;}
+.leader-content h3 {font-size:clamp(1.3rem,2.2vw,1.75rem);margin:0 0 13px;line-height:1.32;}
+.leader-amp {color:#1265c8;font-weight:700;}
+.leader-content p {font-size:.94rem;line-height:1.8;margin:0;color:#5d6875;}
+@media (max-width:700px) {
+ .leadership-grid {grid-template-columns:1fr;gap:18px;}
+ .leader-content {padding:22px 21px 25px;}
+ .leader-photo {aspect-ratio:4/3;}
+}

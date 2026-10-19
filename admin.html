@@ -188,7 +188,7 @@
         <div class="quote-info"><div><h4>PREPARED FOR</h4><strong id="printClient">Sample Customer (Demo)</strong><small id="printClientPhone"></small><small id="printClientLocation">Manjeri, Kerala</small><small id="printClientGST"></small></div><dl class="quote-meta"><div><dt>Quotation No.</dt><dd id="printNumber">VC-Q-2026-001</dd></div><div><dt>Date</dt><dd id="printDate">19 Oct 2026</dd></div><div><dt>Valid Until</dt><dd id="printValid">03 Nov 2026</dd></div><div><dt>Currency</dt><dd>Indian Rupees (INR)</dd></div></dl></div>
         <table class="quote-table"><thead><tr><th style="width:7%">#</th><th style="width:43%;text-align:left">Description</th><th style="width:12%">Qty</th><th style="width:17%;text-align:right">Rate (₹)</th><th style="width:21%">Amount (₹)</th></tr></thead><tbody id="printItems"></tbody></table>
         <div class="quote-totals"><div class="quote-total-row"><span>Subtotal</span><strong id="printSubtotal">₹0</strong></div><div class="quote-total-row" id="printDiscountRow"><span>Discount</span><strong id="printDiscount">−₹0</strong></div><div class="quote-total-row" id="printTaxRow"><span id="printTaxLabel">GST (0%)</span><strong id="printTax">₹0</strong></div><div class="quote-total-row quote-total-final"><span>Grand Total</span><strong id="printTotal">₹0</strong></div></div>
-        <div class="quote-terms"><h4>TERMS & CONDITIONS</h4><p id="printTerms"></p></div><div class="quote-bottom"><small>Thank you for choosing VIZCAM.</small><div class="sign-off"><div class="approval-images"><img class="quotation-stamp" src="assets/vizcam-quotation-stamp.svg" alt="VIZCAM company stamp"><img class="quotation-signature" src="assets/vizcam-sahil-signature-2026.webp" alt="Sahil handwritten authorized signature"></div><div class="sign-line"></div><span>For VIZCAM<br>Authorized Signatory</span></div></div>
+        <div class="quote-terms"><h4>TERMS & CONDITIONS</h4><p id="printTerms"></p></div><div class="quote-bottom"><small>Thank you for choosing VIZCAM.</small><div class="sign-off"><div class="approval-images"><img class="quotation-stamp" src="assets/vizcam-exact-quotation-stamp-2026.jpg" alt="VIZCAM company stamp"><img class="quotation-signature" src="assets/vizcam-sahil-signature-2026.webp" alt="Sahil handwritten authorized signature"></div><div class="sign-line"></div><span>For VIZCAM<br>Authorized Signatory</span></div></div>
       </article><div class="quote-preview-bottom"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div>
     </section></div>
 </div>
@@ -426,11 +426,28 @@
   }
   $('closeShare').addEventListener('click',()=>$('quoteShareDialog').close());
   $('quoteShareDialog').addEventListener('click',e=>{if(e.target===$('quoteShareDialog'))$('quoteShareDialog').close()});
-  // html2canvas can omit external SVG stamps while exporting a PDF. Convert
-  // stamp and signature to browser-generated PNGs first, then restore images.
+  // Preserve the user's exact original stamp; never redraw or resample it.
+  // During PDF export, inline the original same-origin JPEG bytes without modification.
+  // Only the transparent signature is rasterized to ensure it also appears in the PDF.
   async function pdfSafeImageData(img){
     if(img.decode)await img.decode();
     if(!img.naturalWidth||!img.naturalHeight)throw new Error('Quotation image has not loaded: '+img.alt);
+    if(img.classList.contains('quotation-stamp')){
+      const response=await fetch(img.currentSrc || img.src,{cache:'force-cache',credentials:'same-origin'});
+      if(!response.ok)throw new Error('Original VIZCAM stamp could not be loaded for PDF.');
+      const blob=await response.blob();
+      if(blob.type!=='image/jpeg' && blob.type!=='image/png')
+        throw new Error('The original stamp file is not a supported image format.');
+      const data=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=()=>resolve(reader.result);
+        reader.onerror=()=>reject(new Error('Original stamp could not be embedded in the PDF.'));
+        reader.readAsDataURL(blob);
+      });
+      if(typeof data!=='string'||!data.startsWith('data:image/'))
+        throw new Error('Original stamp image data was not prepared correctly.');
+      return data;
+    }
     const canvas=document.createElement('canvas');
     const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));
     canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
@@ -440,7 +457,8 @@
     context.clearRect(0,0,canvas.width,canvas.height);
     context.drawImage(img,0,0,canvas.width,canvas.height);
     const png=canvas.toDataURL('image/png');
-    if(!png.startsWith('data:image/png;base64,'))throw new Error('Image could not be prepared for PDF.');
+    if(!png.startsWith('data:image/png;base64,'))
+      throw new Error('Authorized signature could not be prepared for PDF.');
     return png;
   }
   async function getPdfFile(){

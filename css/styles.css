@@ -307,9 +307,16 @@ p{color:var(--muted)}
 .vizcam-product-modal-order{width:100%;justify-content:center;text-align:center}
 body:has(.vizcam-product-modal[open]){overflow:hidden}
 @media(max-width:680px){
- .vizcam-products-grid{grid-template-columns:1fr;gap:16px}
- .vizcam-product-card-image{height:270px}
- .vizcam-product-card-content{padding:17px}
+ .vizcam-products-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .vizcam-product-card{border-radius:12px}
+ .vizcam-product-card-image{height:clamp(145px,42vw,195px);padding:6px}
+ .vizcam-product-card-content{padding:12px 10px}
+ .vizcam-product-card-brand{font-size:.61rem;letter-spacing:.05em}
+ .vizcam-product-card-content h3{font-size:.93rem;line-height:1.25;margin:7px 0}
+ .vizcam-product-card-content p{font-size:.72rem;margin-bottom:13px}
+ .vizcam-product-card-buttons{grid-template-columns:1fr;gap:7px}
+ .vizcam-product-card-buttons .btn{width:100%;font-size:.78rem;padding:10px 6px;line-height:1.25}
+ .vizcam-product-card-buttons .btn span{display:none}
  .vizcam-product-modal-header{padding:16px}
  .vizcam-product-modal-content{padding:16px}
  .vizcam-product-modal-gallery{gap:8px}

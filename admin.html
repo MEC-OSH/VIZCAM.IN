@@ -114,6 +114,15 @@
  .cloud-working{opacity:.65;pointer-events:none}
  @media print{.browser-export{display:none!important}}
 .pin-setup{margin-top:18px;border:1px solid #d6e2ee;border-radius:9px;padding:11px;color:#47627a;font-size:12px}.pin-setup summary{cursor:pointer;font-weight:800;color:#175d98}.pin-setup p{margin:10px 0;font-size:12px}
+
+.change-pin-dialog{width:min(440px,calc(100% - 36px));max-height:90vh;overflow:auto;background:#fff;border:1px solid #c8d9e8;border-radius:16px;padding:25px;color:#263e51;box-shadow:0 23px 80px rgba(2,32,61,.3)}
+.change-pin-dialog::backdrop{background:rgba(10,26,44,.64)}
+.change-pin-dialog .modal-top h2{font-size:22px;line-height:1.25;margin:12px 0 5px}
+.change-pin-dialog .modal-top button{border:0;border-radius:8px;background:#f0f5f8;padding:6px 13px;font-size:24px;cursor:pointer}
+.change-pin-dialog>p{font-size:12px;color:#60758a;line-height:1.65}
+.change-pin-dialog input{margin-bottom:9px}
+.change-pin-dialog .small-security-hint{font-size:11px}
+@media print{.change-pin-dialog{display:none!important}}
 </style>
 </head>
 <body>
@@ -146,7 +155,8 @@
     <button type="button" class="side-entry" id="completedLink"><span class="side-icon">✓</span> Completed <span class="side-count" id="sideCompleted">0</span></button>
     <button type="button" class="side-entry" id="rejectedLink"><span class="side-icon">✕</span> Rejected <span class="side-count" id="sideRejected">0</span></button>
     <button type="button" class="side-entry" id="quotesLink"><span class="side-icon">✎</span> Create Quotation</button>
-    <div class="side-divider"></div><button type="button" class="side-entry" id="backHome"><span class="side-icon">⌂</span> Lock &amp; Exit</button>
+    <div class="side-divider"></div><button type="button" class="side-entry" id="changePinButton"><span class="side-icon">🔑</span> Change PIN / Password</button>
+    <button type="button" class="side-entry" id="backHome"><span class="side-icon">⌂</span> Lock &amp; Exit</button>
     <div class="side-logo"><img src="assets/vizcam-logo-2026.webp" alt="VIZCAM logo"><span>SECURITY · NETWORKING · AUTOMATION</span><span>Manjeri, Kerala</span></div>
   </aside>
   <main class="admin-main"><section class="overview-panel" id="overviewPanel" hidden>
@@ -202,6 +212,21 @@
   </main>
 </div>
 <dialog id="quoteShareDialog" class="share-dialog" aria-labelledby="shareTitle"><div class="share-dialog-heading"><div><span class="pill">VIZCAM QUOTATION</span><h2 id="shareTitle">Share Quotation</h2></div><button type="button" id="closeShare" aria-label="Close share options">×</button></div><p id="shareQuoteInfo" class="share-intro"></p><div class="share-options"><button type="button" id="sharePDF" class="share-option"><strong>📄 Share PDF</strong><span>Share the complete quotation document on supported devices</span></button><button type="button" id="savePDF" class="share-option"><strong>⬇ Download PDF</strong><span>Save a copy to attach in WhatsApp or email</span></button><button type="button" id="shareWhatsApp" class="share-option"><strong>💬 WhatsApp Message</strong><span>Share quotation number, customer, items and total as text</span></button></div><p class="share-tip">Sharing a PDF depends on your device. If unavailable, download the PDF and attach it manually.</p></dialog>
+<dialog id="changePinDialog" class="change-pin-dialog" aria-labelledby="changePinTitle">
+  <div class="modal-top"><div><span class="pill">VIZCAM · ADMIN SECURITY</span><h2 id="changePinTitle">Change Admin PIN / Password</h2></div><button type="button" id="closeChangePin" aria-label="Close PIN change">×</button></div>
+  <p>Change your VIZCAM cloud login securely. The PIN or password is never stored in the website code.</p>
+  <form id="changePinForm" autocomplete="off">
+    <label class="login-label" for="currentPin">Current PIN / Password</label>
+    <input class="login-input" id="currentPin" type="password" autocomplete="current-password" required>
+    <label class="login-label" for="changeNewPin">New PIN / Password</label>
+    <input class="login-input" id="changeNewPin" type="password" autocomplete="new-password" minlength="8" maxlength="64" required>
+    <label class="login-label" for="confirmNewPin">Confirm New PIN / Password</label>
+    <input class="login-input" id="confirmNewPin" type="password" autocomplete="new-password" minlength="8" maxlength="64" required>
+    <p id="changePinMessage" class="pin-error" role="status" aria-live="polite"></p>
+    <button type="submit" class="action action-primary pin-submit" id="confirmChangePin">Save New PIN / Password</button>
+  </form>
+  <p class="small-security-hint">A longer, unpredictable password is safer than an eight-digit PIN.</p>
+</dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -314,6 +339,34 @@
   $('closeLogin').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal()});
   $('backHome').addEventListener('click',showHome);$('homeLogo').addEventListener('click',e=>{e.preventDefault();showHome()});
+  $('changePinButton').addEventListener('click',()=>{
+    if(!cloudAccess){toast('Sign in to change your PIN or password.');return}
+    $('changePinForm').reset();$('changePinMessage').textContent='';
+    $('changePinDialog').showModal();
+    $('currentPin').focus();
+  });
+  $('closeChangePin').addEventListener('click',()=>$('changePinDialog').close());
+  $('changePinDialog').addEventListener('click',e=>{if(e.target===$('changePinDialog'))$('changePinDialog').close()});
+  $('changePinForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(!cloudAccess||!cloud){$('changePinMessage').textContent='Sign in again before changing your password.';return}
+    const oldPassword=$('currentPin').value, newPassword=$('changeNewPin').value;
+    const confirmation=$('confirmNewPin').value;
+    if(newPassword.length<8||newPassword.length>64){$('changePinMessage').textContent='Use at least 8 characters.';return}
+    if(newPassword!==confirmation){$('changePinMessage').textContent='The new credentials do not match.';return}
+    if(oldPassword===newPassword){$('changePinMessage').textContent='Choose a different PIN or password from the current one.';return}
+    const submit=$('confirmChangePin');submit.disabled=true;
+    $('changePinMessage').textContent='Updating your cloud login...';
+    try{
+      const {error}=await cloud.auth.updateUser({password:newPassword,current_password:oldPassword});
+      if(error)throw error;
+      $('changePinForm').reset();$('changePinDialog').close();
+      window.alert('Your login credential was changed. Please sign in with your new PIN or password.');
+      await showHome();
+      openModal();
+    }catch(err){$('changePinMessage').textContent='Could not change credential: '+(err.message||'Please try again.')}
+    finally{submit.disabled=false}
+  });
   $('quotesLink').addEventListener('click',()=>showPanel('generator'));
   function safeNum(x){const v=Number(x);return isFinite(v)&&v>0?v:0}
   function createInput(placeholder,value,onChange,type='text'){

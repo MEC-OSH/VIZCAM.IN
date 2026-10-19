@@ -73,6 +73,39 @@
 @media(max-width:1020px){.overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.overview-top,.records-bottom{flex-direction:column;align-items:stretch}.overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.records-head{flex-direction:column;align-items:stretch}#quoteSearch{width:100%}}
 @media print{.overview-panel{display:none!important}#generatorPanel{display:block!important}.approval-images{height:95px}.quotation-stamp{width:100px;height:100px}.quotation-signature{width:140px}}
+
+/* Separate Print, Save and Share actions */
+.generator-top-actions{display:flex;justify-content:flex-end;margin:-4px 0 16px}
+.quote-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.quote-toolbar .qa-btn{border:1px solid #cadbec;background:#fff;border-radius:9px;min-width:84px;padding:10px 14px;font-size:12px;font-weight:800;color:#145784;display:inline-flex;justify-content:center;align-items:center;gap:5px;white-space:nowrap;cursor:pointer}
+.quote-toolbar .qa-print{background:#ebf3fb;border-color:#b9d2eb;color:#174f84}
+.quote-toolbar .qa-save{background:#0d67c1;border-color:#0d67c1;color:#fff}
+.quote-toolbar .qa-share{background:#e7f6ef;border-color:#bbe1cc;color:#137545}
+.quote-toolbar .qa-btn:hover{filter:brightness(.96);transform:translateY(-1px)}
+.form-actions{display:block}
+.form-actions .quote-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.form-actions .qa-btn{width:100%;min-width:0}
+.more-quote-actions{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0}
+.more-quote-actions button{font-size:11px;font-weight:700;border:1px solid #d6e4f1;padding:9px 11px;background:#fff;border-radius:8px;color:#41627e}
+.preview-header .quote-toolbar .qa-btn{font-size:11px;padding:9px 11px;min-width:72px}
+.quote-preview-bottom{background:#fff;border:1px solid #e3e9ef;border-radius:0 0 12px 12px;padding:16px;display:flex;justify-content:center}
+.record-actions .record-print,.record-actions .record-share{border:1px solid #cee0ef;background:#f6fbff;color:#1c658d}
+.record-actions .record-share{background:#eef9f1;border-color:#c2e6d0;color:#167343}
+.share-dialog{border:1px solid #d7e4ef;background:#fff;border-radius:15px;max-width:440px;width:calc(100% - 32px);padding:25px;box-shadow:0 28px 80px #0a223b45;color:#152e43}
+.share-dialog::backdrop{background:#13293fcc}
+.share-dialog-heading{display:flex;justify-content:space-between;align-items:start;gap:14px}
+.share-dialog-heading h2{font-size:23px;margin:14px 0 5px}
+.share-dialog-heading>button{border:0;background:#edf3f9;border-radius:8px;min-width:35px;height:35px;font-size:22px;cursor:pointer}
+.share-intro{font-size:13px;color:#587085;line-height:1.5}
+.share-options{display:grid;gap:9px;margin:16px 0}
+.share-option{display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;padding:13px 14px;background:#f9fcff;border:1px solid #dbe7f0;border-radius:10px;cursor:pointer}
+.share-option:hover{background:#ecf5ff;border-color:#aacbe8}
+.share-option strong{color:#14476e;font-size:14px}
+.share-option span,.share-tip{font-size:11px;line-height:1.5;color:#657b8e}
+.share-tip{margin:10px 0 0}
+@media(max-width:1050px){.preview-header{flex-wrap:wrap;gap:10px}}
+@media(max-width:720px){.generator-top-actions{justify-content:stretch}.generator-top-actions .quote-toolbar{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.generator-top-actions .qa-btn{width:100%;min-width:0;padding:10px 6px}.preview-header .quote-toolbar{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.preview-header .quote-toolbar .qa-btn{width:100%;min-width:0;padding:9px 5px}}
+@media print{.generator-top-actions,.quote-toolbar,.quote-preview-bottom,.more-quote-actions,.share-dialog{display:none!important}}
 </style>
 </head>
 <body>
@@ -126,7 +159,7 @@
     <div class="record-tools"><button type="button" id="exportBackup">Export Backup</button><button type="button" id="importBackup">Import Backup</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div></div>
   </div>
 </section>
-<div id="generatorPanel" hidden><div class="admin-heading"><div><h1>Quotation Generator</h1><p>Create a professional, itemized quotation for a VIZCAM customer.</p></div><span class="pill">● Quotation workspace</span></div>
+<div id="generatorPanel" hidden><div class="admin-heading"><div><h1>Quotation Generator</h1><p>Create a professional, itemized quotation for a VIZCAM customer.</p></div><span class="pill">● Quotation workspace</span></div><div class="generator-top-actions"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div>
     <div class="admin-layout"><section class="admin-panel form-panel"><div class="panel-head"><h2>Quotation Details</h2><span>All fields editable</span></div><div class="panel-body">
       <div class="field-section"><h3>Company details <span>Shown on quote</span></h3>
         <div class="input-group"><label for="companyName">Company Name</label><input data-field="companyName" id="companyName" value="VIZCAM" maxlength="80"></div>
@@ -141,20 +174,21 @@
 2. Payment terms and installation schedule will be confirmed before order.
 3. Warranty terms depend on final selected equipment.
 4. Offer valid until the date stated above.</textarea></div><p class="clear-note">Apply GST only when legally applicable. Confirm tax treatment with your accountant.</p></div>
-      <div class="form-actions"><button type="button" class="action-primary" id="printQuote">Print / Save PDF</button><button type="button" id="downloadQuote">Download Draft JSON</button><button type="button" id="resetDemo">New Quotation</button><button type="button" id="saveLocal">Save Quotation to Pending</button></div><p class="clear-note">Saved drafts remain on this device only and are not backed up online. Avoid shared computers for customer information.</p>
+      <div class="form-actions"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" id="printQuote" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" id="saveLocal" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div><div class="more-quote-actions"><button type="button" id="resetDemo">+ New Quotation</button><button type="button" id="downloadQuote">Download Draft JSON</button></div><p class="clear-note">Saved drafts remain on this device only and are not backed up online. Avoid shared computers for customer information.</p>
     </div></section>
-    <section class="preview-card"><div class="preview-header"><div><b>Live Quotation Preview</b> <small>· A4 style</small></div><button type="button" id="printQuote2">↗ Print / Save PDF</button></div>
+    <section class="preview-card"><div class="preview-header"><div><b>Live Quotation Preview</b> <small>· A4 style</small></div><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" id="printQuote2" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div>
       <article class="quote-paper" id="quotePaper" aria-label="Printable VIZCAM quotation"><div class="quote-top"><img class="quote-logo" src="assets/vizcam-logo-2026.webp" alt="VIZCAM company logo"/><div class="company-info"><strong id="printCompany">VIZCAM</strong><div id="printAddress">Manjeri, Malappuram, Kerala</div><div id="printPhone">+91 89438 54151</div><div id="printEmail">service@vizcam.in</div><div id="printGST"></div><div>www.vizcam.in</div></div></div>
         <div class="quote-title-row"><div><h2>QUOTATION</h2><span id="printTitle" style="font-size:11px;color:#617c91">CCTV Installation & Setup</span></div><span class="demo-tag">VIZCAM</span></div>
         <div class="quote-info"><div><h4>PREPARED FOR</h4><strong id="printClient">Sample Customer (Demo)</strong><small id="printClientPhone"></small><small id="printClientLocation">Manjeri, Kerala</small><small id="printClientGST"></small></div><dl class="quote-meta"><div><dt>Quotation No.</dt><dd id="printNumber">VC-Q-2026-001</dd></div><div><dt>Date</dt><dd id="printDate">19 Oct 2026</dd></div><div><dt>Valid Until</dt><dd id="printValid">03 Nov 2026</dd></div><div><dt>Currency</dt><dd>Indian Rupees (INR)</dd></div></dl></div>
         <table class="quote-table"><thead><tr><th style="width:7%">#</th><th style="width:43%;text-align:left">Description</th><th style="width:12%">Qty</th><th style="width:17%;text-align:right">Rate (₹)</th><th style="width:21%">Amount (₹)</th></tr></thead><tbody id="printItems"></tbody></table>
         <div class="quote-totals"><div class="quote-total-row"><span>Subtotal</span><strong id="printSubtotal">₹0</strong></div><div class="quote-total-row" id="printDiscountRow"><span>Discount</span><strong id="printDiscount">−₹0</strong></div><div class="quote-total-row" id="printTaxRow"><span id="printTaxLabel">GST (0%)</span><strong id="printTax">₹0</strong></div><div class="quote-total-row quote-total-final"><span>Grand Total</span><strong id="printTotal">₹0</strong></div></div>
         <div class="quote-terms"><h4>TERMS & CONDITIONS</h4><p id="printTerms"></p></div><div class="quote-bottom"><small>Thank you for choosing VIZCAM.</small><div class="sign-off"><div class="approval-images"><img class="quotation-stamp" src="assets/vizcam-quotation-stamp.svg" alt="VIZCAM company stamp"><img class="quotation-signature" src="assets/vizcam-original-signature.webp" alt="Authorized signature"></div><div class="sign-line"></div><span>For VIZCAM<br>Authorized Signatory</span></div></div>
-      </article>
+      </article><div class="quote-preview-bottom"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div>
     </section></div>
 </div>
   </main>
 </div>
+<dialog id="quoteShareDialog" class="share-dialog" aria-labelledby="shareTitle"><div class="share-dialog-heading"><div><span class="pill">VIZCAM QUOTATION</span><h2 id="shareTitle">Share Quotation</h2></div><button type="button" id="closeShare" aria-label="Close share options">×</button></div><p id="shareQuoteInfo" class="share-intro"></p><div class="share-options"><button type="button" id="sharePDF" class="share-option"><strong>📄 Share PDF</strong><span>Share the complete quotation document on supported devices</span></button><button type="button" id="savePDF" class="share-option"><strong>⬇ Download PDF</strong><span>Save a copy to attach in WhatsApp or email</span></button><button type="button" id="shareWhatsApp" class="share-option"><strong>💬 WhatsApp Message</strong><span>Share quotation number, customer, items and total as text</span></button></div><p class="share-tip">Sharing a PDF depends on your device. If unavailable, download the PDF and attach it manually.</p></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
@@ -300,6 +334,8 @@
       const status=document.createElement('td');const tag=document.createElement('span');tag.className='record-status '+(q.status==='completed'?'is-completed':'is-pending');tag.textContent=q.status==='completed'?'Completed':'Pending';status.append(tag);tr.append(status);
       const actions=document.createElement('td');actions.className='record-actions';
       const open=document.createElement('button');open.type='button';open.textContent='Open';open.addEventListener('click',()=>chooseQuote(q));actions.append(open);
+      const printRecord=document.createElement('button');printRecord.type='button';printRecord.textContent='Print';printRecord.className='record-print';printRecord.setAttribute('aria-label','Print quotation '+q.id);printRecord.addEventListener('click',()=>{chooseQuote(q);printQuote(true)});actions.append(printRecord);
+      const shareRecord=document.createElement('button');shareRecord.type='button';shareRecord.textContent='Share';shareRecord.className='record-share';shareRecord.setAttribute('aria-label','Share quotation '+q.id);shareRecord.addEventListener('click',()=>{chooseQuote(q);openShareDialog(true)});actions.append(shareRecord);
       if(q.status!=='completed'){
         const pay=document.createElement('button');pay.type='button';pay.textContent='Mark Payment Completed';pay.className='pay-action';
         pay.addEventListener('click',()=>{
@@ -317,18 +353,121 @@
   fields.forEach(k=>{$(k).addEventListener('input',render);savedInitial[k]=$(k).value});lineEditor();render();
   $('addItem').addEventListener('click',()=>{if(items.length>=40){toast('Maximum 40 quotation items.');return}items.push({name:'New item / service',qty:1,unit:'Nos',rate:0});lineEditor();render()});
   $('quoteDate').addEventListener('change',()=>{if(!currentRecord){$('quoteNumber').value=nextNumber($('quoteDate').value);render()}});
-  function printQuote(){
-    if(!saveQuotation())return;
+  function printQuote(skipSave=false){
+    if(!skipSave&&!saveQuotation())return;
     showPanel('generator');
+    render();
     window.print();
   }
-  $('printQuote').addEventListener('click',printQuote);$('printQuote2').addEventListener('click',printQuote);
+
+  // Keep Print, Save and Share separate from the quotation content.
+  // The share dialog allows a real PDF attachment where the browser permits it.
+  function shareMessage(){
+    const q=state(),total=calculateTotal(q),formattedItems=q.items.map((item,i)=>{
+      const qty=safeNum(item.qty),rate=safeNum(item.rate);
+      return (i+1)+'. '+(item.name||'Item')+' - '+qty+' '+(item.unit||'Nos')+' x '+money(rate)+' = '+money(qty*rate);
+    });
+    return [
+      'VIZCAM | CCTV, Networking & Security Systems',
+      'Quotation: '+($('quoteNumber').value||''),
+      'Customer: '+q.clientName,
+      'Date: '+shortDate(q.quoteDate),
+      'Installation location: '+(q.clientLocation||'Not specified'),
+      '',
+      'Items:',
+      ...formattedItems,
+      '',
+      'Grand Total: '+money(total),
+      'Valid Until: '+shortDate(q.validUntil),
+      '',
+      'Contact: +91 89438 54151 | service@vizcam.in',
+      'www.vizcam.in'
+    ].join('\n');
+  }
+  function openShareDialog(skipSave=false){
+    if(!skipSave&&!saveQuotation())return;
+    render();
+    $('shareQuoteInfo').textContent=($('quoteNumber').value||'Quotation')+' · '+$('clientName').value+' · '+$('printTotal').textContent;
+    $('quoteShareDialog').showModal();
+  }
+  $('closeShare').addEventListener('click',()=>$('quoteShareDialog').close());
+  $('quoteShareDialog').addEventListener('click',e=>{if(e.target===$('quoteShareDialog'))$('quoteShareDialog').close()});
+  async function getPdfFile(){
+    if(!window.html2pdf){
+      await new Promise((resolve,reject)=>{
+        const tag=document.createElement('script');
+        tag.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        tag.onload=resolve;tag.onerror=()=>reject(new Error('PDF library could not load.'));
+        document.head.appendChild(tag);
+      });
+    }
+    if(!window.html2pdf)throw new Error('PDF export not available.');
+    await Promise.all(Array.from($('quotePaper').querySelectorAll('img')).map(im=>im.decode?im.decode().catch(()=>{}):Promise.resolve()));
+    const blob=await window.html2pdf().set({
+      margin:6,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],avoid:['tr','.quote-bottom','.quote-terms']}
+    }).from($('quotePaper')).outputPdf('blob');
+    const name=($('quoteNumber').value||'VIZCAM-Quotation').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+    return new File([blob],name,{type:'application/pdf'});
+  }
+  function downloadFile(file){
+    const url=URL.createObjectURL(file);
+    const a=document.createElement('a');a.href=url;a.download=file.name;document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),15000);
+  }
+  let pdfBusy=false;
+  $('savePDF').addEventListener('click',async()=>{
+    if(pdfBusy)return;
+    pdfBusy=true;$('savePDF').disabled=true;
+    try {
+      const file=await getPdfFile();
+      downloadFile(file);
+      toast('PDF downloaded: '+file.name);
+      $('quoteShareDialog').close();
+    }catch(e){toast('PDF export unavailable. Use Print and choose Save as PDF.')}
+    finally{pdfBusy=false;$('savePDF').disabled=false}
+  });
+  $('sharePDF').addEventListener('click',async()=>{
+    if(pdfBusy)return;
+    pdfBusy=true;$('sharePDF').disabled=true;
+    try {
+      const file=await getPdfFile();
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        try {
+          await navigator.share({files:[file],title:'VIZCAM Quotation '+$('quoteNumber').value,text:'Quotation for '+$('clientName').value});
+          $('quoteShareDialog').close();toast('Sharing completed.');
+        }catch(e){if(e.name!=='AbortError')toast('Could not share PDF. Please try Download PDF.')}
+      }else{
+        downloadFile(file);
+        toast('PDF downloaded. Attach it to WhatsApp or email to share.');
+        $('quoteShareDialog').close();
+      }
+    }catch(e){toast('PDF sharing unavailable. Try WhatsApp Message or Print.')}
+    finally{pdfBusy=false;$('sharePDF').disabled=false}
+  });
+  $('shareWhatsApp').addEventListener('click',()=>{
+    const url='https://wa.me/?text='+encodeURIComponent(shareMessage());
+    const tab=window.open(url,'_blank','noopener,noreferrer');
+    if(!tab)window.location.href=url;
+    $('quoteShareDialog').close();
+  });
+
+  document.querySelectorAll('[data-quote-action]').forEach(button=>{
+    const action=button.getAttribute('data-quote-action');
+    button.addEventListener('click',()=>{
+      if(action==='print')printQuote();
+      else if(action==='save')saveQuotation();
+      else if(action==='share')openShareDialog();
+    });
+  });
   function downloadJSON(payload,filename){
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));
     const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   $('downloadQuote').addEventListener('click',()=>downloadJSON({type:'vizcam-quotation',data:state()},($('quoteNumber').value||'VIZCAM')+'.json'));
-  $('saveLocal').addEventListener('click',saveQuotation);
   $('resetDemo').addEventListener('click',newQuotation);
   $('overviewLink').addEventListener('click',()=>showPanel('overview','all'));
   $('pendingLink').addEventListener('click',()=>showPanel('overview','pending'));

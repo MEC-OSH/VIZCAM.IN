@@ -37,11 +37,11 @@
 .overview-top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px}
 .overview-top h1{margin:17px 0 6px;font-size:30px}
 .overview-top p{font-size:13px;color:#66778a;margin:0}
-.overview-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.overview-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:22px}
 .stat-card{background:#fff;padding:18px;border:1px solid #dfe8f0;border-radius:13px;box-shadow:0 5px 15px rgba(10,49,80,.025)}
 .stat-card span{display:block;font-size:12px;font-weight:700;color:#718193;margin-bottom:9px}
 .stat-card strong{font-size:25px;color:#123453}
-.pending-stat strong{color:#b37612}.completed-stat strong{color:#19764c}
+.pending-stat strong{color:#b37612}.completed-stat strong,.completed-value-stat strong{color:#19764c}.rejected-stat strong{color:#b04444}
 .records-panel{border:1px solid #e3e9ef;border-radius:13px;background:#fff;overflow:hidden}
 .records-head{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:18px 20px;border-bottom:1px solid #e4ebf0}
 .record-tabs{display:flex;flex-wrap:wrap;gap:7px}
@@ -56,9 +56,12 @@
 .record-status{border-radius:20px;padding:6px 10px;font-size:11px;font-weight:800;white-space:nowrap}
 .record-status.is-pending{background:#fff1d6;color:#895400}
 .record-status.is-completed{background:#dff7e9;color:#136d42}
+.record-status.is-rejected{background:#ffe9e9;color:#9a3838}
 .record-actions{min-width:210px}
 .record-actions button{padding:7px 10px;border:1px solid #d0dfec;border-radius:6px;background:#fff;font-weight:700;font-size:11px;margin:2px}
 .record-actions button.pay-action{background:#e6f7ed;color:#126a3d;border-color:#b7e5cb}
+.record-actions button.reject-action{background:#fff0f0;color:#a83d3d;border-color:#f1caca}
+.record-actions button.restore-action{background:#f0f5ff;color:#205a95;border-color:#c0d4ed}
 .record-actions small{display:block;color:#667;white-space:nowrap}
 .records-empty{padding:24px;text-align:center;color:#789}
 .records-bottom{border-top:1px solid #e6edf2;padding:15px 20px;display:flex;justify-content:space-between;gap:15px;align-items:center}
@@ -134,6 +137,7 @@
     <button type="button" class="side-entry active" id="overviewLink"><span class="side-icon">▦</span> Overview</button>
     <button type="button" class="side-entry" id="pendingLink"><span class="side-icon">▤</span> Pending <span class="side-count" id="sidePending">0</span></button>
     <button type="button" class="side-entry" id="completedLink"><span class="side-icon">✓</span> Completed <span class="side-count" id="sideCompleted">0</span></button>
+    <button type="button" class="side-entry" id="rejectedLink"><span class="side-icon">✕</span> Rejected <span class="side-count" id="sideRejected">0</span></button>
     <button type="button" class="side-entry" id="quotesLink"><span class="side-icon">✎</span> Create Quotation</button>
     <div class="side-divider"></div><button type="button" class="side-entry" id="backHome"><span class="side-icon">⌂</span> Lock &amp; Exit</button>
     <div class="side-logo"><img src="assets/vizcam-logo-2026.webp" alt="VIZCAM logo"><span>SECURITY · NETWORKING · AUTOMATION</span><span>Manjeri, Kerala</span></div>
@@ -145,15 +149,17 @@
     <div class="stat-card"><span>Total Quotations</span><strong id="statAll">0</strong></div>
     <div class="stat-card pending-stat"><span>Pending Payment</span><strong id="statPending">0</strong></div>
     <div class="stat-card completed-stat"><span>Completed Payments</span><strong id="statCompleted">0</strong></div>
-    <div class="stat-card"><span>Total Quoted Value</span><strong id="statValue">₹0.00</strong></div>
+    <div class="stat-card rejected-stat"><span>Rejected Quotations</span><strong id="statRejected">0</strong></div>
+    <div class="stat-card completed-value-stat"><span>Completed Value</span><strong id="statValue">₹0.00</strong></div>
   </div>
   <div class="records-panel">
     <div class="records-head"><div class="record-tabs" role="group" aria-label="Filter quotations">
       <button type="button" class="record-tab active" id="tabAll">All</button>
       <button type="button" class="record-tab" id="tabPending">Pending</button>
       <button type="button" class="record-tab" id="tabCompleted">Completed</button>
+      <button type="button" class="record-tab" id="tabRejected">Rejected</button>
     </div><input id="quoteSearch" type="search" aria-label="Search quotation number or customer" placeholder="Search customer / quotation no."></div>
-    <div class="table-scroll"><table class="records-table"><thead><tr><th>Quotation Number</th><th>Customer</th><th>Date</th><th>Amount (₹)</th><th>Payment</th><th>Action</th></tr></thead><tbody id="recordsBody"></tbody></table></div>
+    <div class="table-scroll"><table class="records-table"><thead><tr><th>Quotation Number</th><th>Customer</th><th>Date</th><th>Amount (₹)</th><th>Status</th><th>Action</th></tr></thead><tbody id="recordsBody"></tbody></table></div>
     <p id="recordsEmpty" class="records-empty" hidden>No quotations found.</p>
     <div class="records-bottom"><span>Saved locally in this browser. Back up regularly; records do not sync across devices.</span>
     <div class="record-tools"><button type="button" id="exportBackup">Export Backup</button><button type="button" id="importBackup">Import Backup</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div></div>
@@ -299,7 +305,8 @@
     const s=state();s.quoteNumber=id;
     const older=records.find(x=>x.id===id);
     if(older&&older.status==='completed'&&!window.confirm('This quotation is marked Paid. Save changes to the completed quotation?'))return false;
-    const q={id,customer:name,date:s.quoteDate,total:calculateTotal(s),status:older?.status||'pending',paidAt:older?.paidAt||null,createdAt:older?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),data:s};
+    if(older&&older.status==='rejected'&&!window.confirm('This quotation is Rejected. Save edits while keeping it in Rejected?'))return false;
+    const q={id,customer:name,date:s.quoteDate,total:calculateTotal(s),status:older?.status||'pending',paidAt:older?.paidAt||null,rejectedAt:older?.rejectedAt||null,createdAt:older?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),data:s};
     const next=records.filter(x=>x.id!==id);next.push(q);next.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
     const before=records;records=next;
     if(!persist()){records=before;return false}
@@ -308,42 +315,69 @@
   function showPanel(view,filter){
     const showOverview=view!=='generator';
     $('overviewPanel').hidden=!showOverview;$('generatorPanel').hidden=showOverview;
-    for(const id of ['overviewLink','pendingLink','completedLink','quotesLink'])$(id).classList.remove('active');
+    for(const id of ['overviewLink','pendingLink','completedLink','rejectedLink','quotesLink'])$(id).classList.remove('active');
     if(showOverview){
-      activeFilter=filter||'all';$('overviewHeading').textContent=activeFilter==='pending'?'Pending Quotations':activeFilter==='completed'?'Completed Quotations':'Quotation Overview';
-      $(activeFilter==='pending'?'pendingLink':activeFilter==='completed'?'completedLink':'overviewLink').classList.add('active');
+      activeFilter=filter||'all';
+      $('overviewHeading').textContent=({pending:'Pending Quotations',completed:'Completed Quotations',rejected:'Rejected Quotations'})[activeFilter]||'Quotation Overview';
+      $(({pending:'pendingLink',completed:'completedLink',rejected:'rejectedLink'})[activeFilter]||'overviewLink').classList.add('active');
       renderOverview();
     }else $('quotesLink').classList.add('active');
   }
+  function updateQuotationStatus(q,newStatus){
+    const oldStatus=q.status||'pending';
+    const allowed=(oldStatus==='pending'&&(newStatus==='completed'||newStatus==='rejected'))||(oldStatus==='rejected'&&newStatus==='pending');
+    if(!allowed){toast('This status change is not available.');return}
+    const questions={
+      completed:'Confirm full payment received from '+q.customer+' for '+q.id+'?',
+      rejected:'Reject quotation '+q.id+' for '+q.customer+'?',
+      pending:'Move rejected quotation '+q.id+' back to Pending?'
+    };
+    if(!window.confirm(questions[newStatus]))return;
+    const previous={...q};
+    const now=new Date().toISOString();
+    q.status=newStatus;q.updatedAt=now;
+    if(newStatus==='completed'){q.paidAt=now;q.rejectedAt=null}
+    else if(newStatus==='rejected'){q.rejectedAt=now;q.paidAt=null}
+    else{q.paidAt=null;q.rejectedAt=null}
+    if(!persist()){Object.assign(q,previous);renderOverview();return}
+    renderOverview();toast(q.id+' moved to '+newStatus[0].toUpperCase()+newStatus.slice(1));
+  }
   function renderOverview(){
     show('statAll',String(records.length));
-    show('statPending',String(records.filter(q=>q.status!=='completed').length));
+    show('statPending',String(records.filter(q=>(q.status||'pending')==='pending').length));
     show('statCompleted',String(records.filter(q=>q.status==='completed').length));
-    show('sidePending',String(records.filter(q=>q.status!=='completed').length));
+    show('statRejected',String(records.filter(q=>q.status==='rejected').length));
+    show('sidePending',String(records.filter(q=>(q.status||'pending')==='pending').length));
     show('sideCompleted',String(records.filter(q=>q.status==='completed').length));
-    show('statValue',money(records.reduce((s,q)=>s+Number(q.total||0),0)));
+    show('sideRejected',String(records.filter(q=>q.status==='rejected').length));
+    // Revenue-style dashboard total excludes all pending and rejected quotations.
+    show('statValue',money(records.filter(q=>q.status==='completed').reduce((sum,q)=>sum+Number(q.total||0),0)));
     const query=$('quoteSearch').value.trim().toLowerCase();
     const body=$('recordsBody');body.replaceChildren();
-    for(const tab of ['All','Pending','Completed'])$('tab'+tab).classList.toggle('active',activeFilter===tab.toLowerCase());
+    for(const tab of ['All','Pending','Completed','Rejected'])$('tab'+tab).classList.toggle('active',activeFilter===tab.toLowerCase());
     const visible=records.filter(q=>(activeFilter==='all'||(q.status||'pending')===activeFilter)&&(!query||(q.id+' '+q.customer).toLowerCase().includes(query)));
     for(const q of visible){
       const tr=document.createElement('tr');
       for(const value of [q.id,q.customer,shortDate(q.date),money(Number(q.total)||0)]){
         const td=document.createElement('td');td.textContent=value;tr.append(td)
       }
-      const status=document.createElement('td');const tag=document.createElement('span');tag.className='record-status '+(q.status==='completed'?'is-completed':'is-pending');tag.textContent=q.status==='completed'?'Completed':'Pending';status.append(tag);tr.append(status);
+      const status=document.createElement('td');const tag=document.createElement('span');const qStatus=q.status||'pending';tag.className='record-status is-'+(qStatus==='completed'?'completed':qStatus==='rejected'?'rejected':'pending');tag.textContent=qStatus[0].toUpperCase()+qStatus.slice(1);status.append(tag);tr.append(status);
       const actions=document.createElement('td');actions.className='record-actions';
       const open=document.createElement('button');open.type='button';open.textContent='Open';open.addEventListener('click',()=>chooseQuote(q));actions.append(open);
       const printRecord=document.createElement('button');printRecord.type='button';printRecord.textContent='Print';printRecord.className='record-print';printRecord.setAttribute('aria-label','Print quotation '+q.id);printRecord.addEventListener('click',()=>{chooseQuote(q);printQuote(true)});actions.append(printRecord);
       const shareRecord=document.createElement('button');shareRecord.type='button';shareRecord.textContent='Share';shareRecord.className='record-share';shareRecord.setAttribute('aria-label','Share quotation '+q.id);shareRecord.addEventListener('click',()=>{chooseQuote(q);openShareDialog(true)});actions.append(shareRecord);
-      if(q.status!=='completed'){
+      if(qStatus==='pending'){
         const pay=document.createElement('button');pay.type='button';pay.textContent='Mark Payment Completed';pay.className='pay-action';
-        pay.addEventListener('click',()=>{
-          if(!window.confirm('Confirm full payment received from '+q.customer+' for '+q.id+'?'))return;
-          q.status='completed';q.paidAt=new Date().toISOString();q.updatedAt=q.paidAt;
-          if(persist()){renderOverview();toast(q.id+' moved to Completed')}
-        });actions.append(pay);
-      }else{const paid=document.createElement('small');paid.textContent=q.paidAt?'Paid '+new Date(q.paidAt).toLocaleDateString('en-IN'):'';actions.append(paid)}
+        pay.addEventListener('click',()=>updateQuotationStatus(q,'completed'));actions.append(pay);
+        const reject=document.createElement('button');reject.type='button';reject.textContent='Reject Quotation';reject.className='reject-action';
+        reject.addEventListener('click',()=>updateQuotationStatus(q,'rejected'));actions.append(reject);
+      }else if(qStatus==='rejected'){
+        const rejected=document.createElement('small');rejected.textContent=q.rejectedAt?'Rejected '+new Date(q.rejectedAt).toLocaleDateString('en-IN'):'Rejected';actions.append(rejected);
+        const restore=document.createElement('button');restore.type='button';restore.textContent='Move to Pending';restore.className='restore-action';
+        restore.addEventListener('click',()=>updateQuotationStatus(q,'pending'));actions.append(restore);
+      }else{
+        const paid=document.createElement('small');paid.textContent=q.paidAt?'Paid '+new Date(q.paidAt).toLocaleDateString('en-IN'):'';actions.append(paid)
+      }
       tr.append(actions);body.append(tr);
     }
     $('recordsEmpty').hidden=visible.length!==0;
@@ -472,8 +506,9 @@
   $('overviewLink').addEventListener('click',()=>showPanel('overview','all'));
   $('pendingLink').addEventListener('click',()=>showPanel('overview','pending'));
   $('completedLink').addEventListener('click',()=>showPanel('overview','completed'));
+  $('rejectedLink').addEventListener('click',()=>showPanel('overview','rejected'));
   $('overviewNew').addEventListener('click',newQuotation);
-  for(const [tab,filter] of [['tabAll','all'],['tabPending','pending'],['tabCompleted','completed']])$(tab).addEventListener('click',()=>showPanel('overview',filter));
+  for(const [tab,filter] of [['tabAll','all'],['tabPending','pending'],['tabCompleted','completed'],['tabRejected','rejected']])$(tab).addEventListener('click',()=>showPanel('overview',filter));
   $('quoteSearch').addEventListener('input',renderOverview);
   $('exportBackup').addEventListener('click',()=>{
     downloadJSON({type:'vizcam-quotation-backup',version:2,exportedAt:new Date().toISOString(),quotations:records},'VIZCAM_Quotations_Backup_'+todayISO()+'.json');
@@ -489,7 +524,7 @@
       const incoming=obj.quotations.filter(q=>q&&/^VC-Q-\d{6}-\d{4,}$/.test(q.id)&&q.data&&q.data.clientName).slice(0,10000);
       if(!window.confirm('Restore '+incoming.length+' quotations? Records with the same number will be updated.'))return;
       const map=new Map(records.map(q=>[q.id,q]));
-      incoming.forEach(q=>map.set(q.id,{...q,customer:String(q.customer||q.data.clientName).slice(0,100),status:q.status==='completed'?'completed':'pending'}));
+      incoming.forEach(q=>map.set(q.id,{...q,customer:String(q.customer||q.data.clientName).slice(0,100),status:q.status==='completed'?'completed':q.status==='rejected'?'rejected':'pending'}));
       const prev=records;records=Array.from(map.values());
       if(!persist())records=prev;
       else{renderOverview();toast('Backup imported: '+incoming.length+' quotations.')}

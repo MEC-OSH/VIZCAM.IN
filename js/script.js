@@ -36,6 +36,29 @@
       if (!win) window.location.assign(url);
     });
   }
+  // Native, keyboard-accessible product details modal.
+  let productDialogOpener=null;
+  document.querySelectorAll('[data-product-details]').forEach(function(button){
+    button.addEventListener('click',function(){
+      const dialog=document.getElementById(button.getAttribute('data-product-details'));
+      if(!dialog || typeof dialog.showModal!=='function')return;
+      productDialogOpener=button;
+      dialog.showModal();
+      const close=dialog.querySelector('[data-close-product]');
+      if(close)close.focus();
+    });
+  });
+  document.querySelectorAll('dialog.vizcam-product-modal').forEach(function(dialog){
+    dialog.querySelectorAll('[data-close-product]').forEach(function(button){
+      button.addEventListener('click',function(){dialog.close()});
+    });
+    dialog.addEventListener('click',function(event){
+      if(event.target===dialog)dialog.close();
+    });
+    dialog.addEventListener('close',function(){
+      if(productDialogOpener){productDialogOpener.focus();productDialogOpener=null}
+    });
+  });
   const year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());
 })();

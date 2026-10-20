@@ -377,3 +377,9 @@ body:has(.vizcam-product-modal[open]){overflow:hidden}
  .vizcam-poster-next{right:7px}
  .vizcam-poster-intro{margin-bottom:17px}
 }
+
+/* Single-image new products have a calm preview. Additional images can later use the existing slideshow controller. */
+.vizcam-product-card-image .vizcam-product-slides img{height:100%;width:100%;object-fit:contain}
+.vizcam-product-modal-gallery--single{grid-template-columns:minmax(0,1fr);max-width:410px;margin-inline:auto}
+.vizcam-product-modal-gallery--single img{height:min(48vh,340px);object-fit:contain}
+@media(max-width:680px){.vizcam-product-modal-gallery--single img{height:260px}}

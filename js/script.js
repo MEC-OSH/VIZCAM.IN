@@ -95,6 +95,49 @@
       if(productDialogOpener){productDialogOpener.focus();productDialogOpener=null}
     });
   });
+
+  // Four original VIZCAM posters, shown one at a time.
+  const posterCarousel=document.querySelector('[data-poster-carousel]');
+  if(posterCarousel){
+    const posterSlides=Array.from(posterCarousel.querySelectorAll('[data-poster-slide]'));
+    const posterDots=Array.from(posterCarousel.querySelectorAll('[data-poster-dot]'));
+    const posterCount=posterCarousel.querySelector('[data-poster-count]');
+    const reducedPosterMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hoverCapable=window.matchMedia('(hover: hover)').matches;
+    let currentPoster=0,posterTimer=null;
+    function showPoster(index){
+      currentPoster=(index+posterSlides.length)%posterSlides.length;
+      posterSlides.forEach(function(slide,i){slide.hidden=i!==currentPoster});
+      posterDots.forEach(function(dot,i){
+        dot.classList.toggle('is-active',i===currentPoster);
+        dot.setAttribute('aria-pressed',String(i===currentPoster));
+      });
+      if(posterCount)posterCount.textContent=(currentPoster+1)+' / '+posterSlides.length;
+    }
+    function stopPosterTimer(){
+      if(posterTimer!==null){window.clearInterval(posterTimer);posterTimer=null}
+    }
+    function startPosterTimer(){
+      stopPosterTimer();
+      if(reducedPosterMotion||document.hidden||
+        (hoverCapable&&posterCarousel.matches(':hover'))||
+        posterCarousel.contains(document.activeElement))return;
+      posterTimer=window.setInterval(function(){showPoster(currentPoster+1)},5000);
+    }
+    function choosePoster(index){showPoster(index);startPosterTimer()}
+    posterCarousel.querySelector('[data-poster-prev]')?.addEventListener('click',function(){choosePoster(currentPoster-1)});
+    posterCarousel.querySelector('[data-poster-next]')?.addEventListener('click',function(){choosePoster(currentPoster+1)});
+    posterDots.forEach(function(dot,i){dot.addEventListener('click',function(){choosePoster(i)})});
+    posterCarousel.addEventListener('mouseenter',stopPosterTimer);
+    posterCarousel.addEventListener('mouseleave',startPosterTimer);
+    posterCarousel.addEventListener('focusin',stopPosterTimer);
+    posterCarousel.addEventListener('focusout',function(){window.setTimeout(startPosterTimer,0)});
+    document.addEventListener('visibilitychange',function(){if(document.hidden)stopPosterTimer();else startPosterTimer()});
+    window.addEventListener('pagehide',stopPosterTimer);
+    if(posterSlides.length)showPoster(0);
+    if(posterSlides.length>1)startPosterTimer();
+  }
+
   const year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());
 })();

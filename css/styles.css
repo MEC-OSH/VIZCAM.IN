@@ -347,3 +347,33 @@ body:has(.vizcam-product-modal[open]){overflow:hidden}
  .vizcam-product-slider-dots{bottom:5px;padding:5px 7px}
  .vizcam-product-slider-dots button{width:7px;height:7px}
 }
+
+/* VIZCAM promotional poster slideshow. Original artwork is displayed uncropped. */
+.vizcam-poster-section{background:#f5f9fe;scroll-margin-top:80px}
+.vizcam-poster-intro{margin-bottom:26px}
+.vizcam-poster-carousel{width:min(100%,650px);margin-inline:auto}
+.vizcam-poster-stage{position:relative;overflow:hidden;background:#fff;border:1px solid #d9e8f5;border-radius:19px;box-shadow:0 16px 44px rgba(16,52,92,.11)}
+.vizcam-poster-slides{width:100%}
+.vizcam-poster-slide{margin:0}
+.vizcam-poster-slide[hidden]{display:none!important}
+.vizcam-poster-slide>a{display:flex;justify-content:center;align-items:center;width:100%;background:#f1f6fa}
+.vizcam-poster-slide img{display:block;max-height:730px;width:100%;height:auto;object-fit:contain}
+.vizcam-poster-arrow{display:flex;align-items:center;justify-content:center;position:absolute;top:50%;z-index:1;transform:translateY(-50%);width:43px;height:43px;border-radius:50%;border:1px solid rgba(255,255,255,.75);background:rgba(4,41,80,.8);color:#fff;cursor:pointer;font-size:32px;line-height:1;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.vizcam-poster-arrow:hover{background:#0868bc}
+.vizcam-poster-prev{left:12px}
+.vizcam-poster-next{right:12px}
+.vizcam-poster-controls{display:flex;justify-content:center;align-items:center;gap:15px;padding:15px 10px 0}
+.vizcam-poster-dots{display:flex;align-items:center;gap:10px}
+.vizcam-poster-dot{width:13px;height:13px;display:block;border:0;border-radius:50%;background:#b9cce0;cursor:pointer;padding:0}
+.vizcam-poster-dot.is-active{background:#0e70c3;box-shadow:0 0 0 3px #dcecfb}
+.vizcam-poster-count{font-size:.78rem;font-weight:800;color:#66809a;font-variant-numeric:tabular-nums}
+.vizcam-poster-caption{text-align:center;margin:10px 0 0;color:#72879a;font-size:.77rem}
+.vizcam-poster-arrow:focus-visible,.vizcam-poster-dot:focus-visible{outline:3px solid #f9ad30;outline-offset:3px}
+@media(max-width:680px){
+ .vizcam-poster-stage{border-radius:12px}
+ .vizcam-poster-slide img{max-height:none}
+ .vizcam-poster-arrow{height:35px;width:35px;font-size:27px}
+ .vizcam-poster-prev{left:7px}
+ .vizcam-poster-next{right:7px}
+ .vizcam-poster-intro{margin-bottom:17px}
+}

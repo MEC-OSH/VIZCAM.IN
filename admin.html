@@ -109,6 +109,10 @@
 @media(max-width:1050px){.preview-header{flex-wrap:wrap;gap:10px}}
 @media(max-width:720px){.generator-top-actions{justify-content:stretch}.generator-top-actions .quote-toolbar{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.generator-top-actions .qa-btn{width:100%;min-width:0;padding:10px 6px}.preview-header .quote-toolbar{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.preview-header .quote-toolbar .qa-btn{width:100%;min-width:0;padding:9px 5px}}
 @media print{.generator-top-actions,.quote-toolbar,.quote-preview-bottom,.more-quote-actions,.share-dialog{display:none!important}}
+ .browser-export{display:block;margin:15px auto 0;border:1px solid #b9d3e8;background:#f0f7ff;color:#165485;border-radius:9px;padding:12px 14px;font-weight:800;width:100%}
+ .record-tools{flex-wrap:wrap} .record-tools #overviewNew{border:0;background:#0867c8;color:white}
+ .cloud-working{opacity:.65;pointer-events:none}
+ @media print{.browser-export{display:none!important}}
 </style>
 </head>
 <body>
@@ -120,16 +124,18 @@
  <div class="admin-landing"><img src="assets/vizcam-logo-2026.webp" alt="VIZCAM logo"><span class="pill">VIZCAM ADMIN</span><h1>Quotation Generator</h1><p>Prepare branded, itemized CCTV and security system quotations for VIZCAM customers.</p><div class="home-cta"><button class="action action-primary" id="heroOpenLogin" type="button">Enter PIN →</button><button class="action action-white" id="quickPreview" type="button">Open Quotation Generator</button><a class="action action-white" href="/">Back to Website</a></div></div>
 </div>
 <div class="backdrop" id="loginBackdrop" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-  <div class="login-card"><div class="modal-top"><div><span class="pill">VIZCAM · PRIVATE AREA</span><h2 id="loginTitle">Admin PIN</h2></div><button type="button" id="closeLogin" aria-label="Close PIN entry dialog">×</button></div><p>Enter PIN to open the quotation generator.</p>
-    <form id="pinForm" autocomplete="off">
-      <label class="login-label" for="adminPin">Enter PIN</label>
-      <input class="login-input pin-input" id="adminPin" name="adminPin" type="password" inputmode="numeric" maxlength="16" placeholder="••••••••" autocomplete="off" required aria-describedby="pinHelp" aria-invalid="false">
-      <p class="login-detail" id="pinHelp">No username required.</p>
-      <p class="pin-error" id="pinError" role="alert" aria-live="polite"></p>
-      <button type="submit" class="action action-primary pin-submit" id="enterAdmin">Unlock Admin <span aria-hidden="true">→</span></button>
+  <div class="login-card">
+    <div class="modal-top"><div><span class="pill">VIZCAM · SECURE CLOUD</span><h2 id="loginTitle">Admin Sign-In</h2></div><button type="button" id="closeLogin" aria-label="Close sign-in dialog">×</button></div>
+    <p>Access the private quotation dashboard through a secure sign-in link sent to the authorized mailbox.</p>
+    <form id="emailForm">
+      <label class="login-label" for="adminEmail">Administrator Email</label>
+      <input class="login-input" id="adminEmail" type="email" value="info@vizcam.in" readonly autocomplete="username">
+      <button type="submit" class="action action-primary pin-submit" id="sendMagicLink">✉ Send Secure Sign-In Link</button>
+      <p id="pinError" class="pin-error" role="status" aria-live="polite"></p>
     </form>
-    <div class="security-note"><strong>Privacy:</strong> This website runs on static hosting. The PIN screen is not secure server authentication. Do not store confidential customer records here.</div>
-    <p class="login-foot">Only quotation drafts on this device · <a href="/">Return to VIZCAM website</a></p>
+    <div class="security-note"><strong>Private cloud:</strong> Only the verified VIZCAM administrator can access customer quotations. Old browser quotations are preserved until imported.</div>
+    <button type="button" class="browser-export" id="exportLegacyPrelogin">⬇ Export Old Browser Quotations</button>
+    <p class="login-foot"><a href="/">Return to VIZCAM website</a></p>
   </div>
 </div>
 <div class="admin-view" id="adminView">
@@ -143,8 +149,8 @@
     <div class="side-logo"><img src="assets/vizcam-logo-2026.webp" alt="VIZCAM logo"><span>SECURITY · NETWORKING · AUTOMATION</span><span>Manjeri, Kerala</span></div>
   </aside>
   <main class="admin-main"><section class="overview-panel" id="overviewPanel" hidden>
-  <div class="overview-top"><div><span class="pill">VIZCAM QUOTATIONS</span><h1 id="overviewHeading">Quotation Overview</h1><p>Saved quotations, customer names and payment progress on this browser.</p></div>
-    <button type="button" class="action action-primary" id="overviewNew">+ New Quotation</button></div>
+  <div class="overview-top"><div><span class="pill">VIZCAM · CLOUD SYNC</span><h1 id="overviewHeading">Quotation Overview</h1><p>Private quotations synchronized across your signed-in devices.</p></div>
+    <div class="record-tools"><button type="button" id="refreshCloud">↻ Refresh</button><button type="button" class="action action-primary" id="overviewNew">+ New Quotation</button></div></div>
   <div class="overview-stats" aria-label="Quotation status summary">
     <div class="stat-card"><span>Total Quotations</span><strong id="statAll">0</strong></div>
     <div class="stat-card pending-stat"><span>Pending Payment</span><strong id="statPending">0</strong></div>
@@ -161,8 +167,8 @@
     </div><input id="quoteSearch" type="search" aria-label="Search quotation number or customer" placeholder="Search customer / quotation no."></div>
     <div class="table-scroll"><table class="records-table"><thead><tr><th>Quotation Number</th><th>Customer</th><th>Date</th><th>Amount (₹)</th><th>Status</th><th>Action</th></tr></thead><tbody id="recordsBody"></tbody></table></div>
     <p id="recordsEmpty" class="records-empty" hidden>No quotations found.</p>
-    <div class="records-bottom"><span>Saved locally in this browser. Back up regularly; records do not sync across devices.</span>
-    <div class="record-tools"><button type="button" id="exportBackup">Export Backup</button><button type="button" id="importBackup">Import Backup</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div></div>
+    <div class="records-bottom"><span>Quotations saved in the private cloud. <strong id="legacyCount"></strong></span>
+    <div class="record-tools"><button type="button" id="exportBackup">Export Cloud Backup</button><button type="button" id="importBrowser">Import This Browser</button><button type="button" id="importBackup">Import Backup File</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div></div>
   </div>
 </section>
 <div id="generatorPanel" hidden><div class="admin-heading"><div><h1>Quotation Generator</h1><p>Create a professional, itemized quotation for a VIZCAM customer.</p></div><span class="pill">● Quotation workspace</span></div><div class="generator-top-actions"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div>
@@ -173,14 +179,14 @@
         <div class="fields-2"><div class="input-group"><label for="companyPhone">Phone / WhatsApp</label><input data-field="companyPhone" id="companyPhone" value="+91 89438 54151" maxlength="45"></div><div class="input-group"><label for="companyEmail">Email</label><input data-field="companyEmail" id="companyEmail" value="service@vizcam.in" maxlength="100"></div></div>
         <div class="input-group"><label for="companyGST">Company GSTIN (optional)</label><input data-field="companyGST" id="companyGST" placeholder="Enter only if registered" maxlength="25"></div>
       </div>
-      <div class="field-section"><h3>Quotation info</h3><div class="input-group"><label for="quoteTitle">Quotation Title</label><input id="quoteTitle" value="CCTV Installation & Setup" maxlength="95"></div><div class="fields-2"><div class="input-group"><label for="quoteNumber">Quote Number (Auto Generated)</label><input id="quoteNumber" value="" maxlength="50" readonly></div><div class="input-group"><label for="quoteDate">Date</label><input type="date" id="quoteDate" value=""></div></div><div class="input-group"><label for="validUntil">Valid Until</label><input type="date" id="validUntil" value=""></div></div>
+      <div class="field-section"><h3>Quotation info</h3><div class="input-group"><label for="quoteTitle">Quotation Title</label><input id="quoteTitle" value="CCTV Installation & Setup" maxlength="95"></div><div class="fields-2"><div class="input-group"><label for="quoteNumber">Quote Number (Auto Generated)</label><input id="quoteNumber" value="" maxlength="50" readonly placeholder="Assigned when saved"></div><div class="input-group"><label for="quoteDate">Date</label><input type="date" id="quoteDate" value=""></div></div><div class="input-group"><label for="validUntil">Valid Until</label><input type="date" id="validUntil" value=""></div></div>
       <div class="field-section"><h3>Customer details</h3><div class="input-group"><label for="clientName">Customer Name</label><input id="clientName" value="" maxlength="100"></div><div class="fields-2"><div class="input-group"><label for="clientPhone">Customer Phone</label><input id="clientPhone" placeholder="Optional" maxlength="45"></div><div class="input-group"><label for="clientLocation">Installation Location</label><input id="clientLocation" value="" maxlength="120"></div></div><div class="input-group"><label for="clientGST">Customer GSTIN (optional)</label><input id="clientGST" maxlength="25" placeholder="Optional"></div></div>
       <div class="field-section"><h3>Products and services <span>Enter agreed prices</span></h3><div id="itemEditor"></div><button type="button" class="add-line" id="addItem">+ Add another item / service</button></div>
       <div class="field-section"><h3>Tax, discount & terms</h3><div class="fields-2"><div class="input-group"><label for="discount">Discount (₹)</label><input id="discount" type="number" min="0" step="0.01" value="0"></div><div class="input-group"><label for="taxRate">GST rate (if applicable)</label><select id="taxRate"><option value="0">0% (none applied)</option><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option><option value="28">28%</option></select></div></div><div class="input-group"><label for="terms">Terms & Conditions</label><textarea id="terms">1. Prices are subject to confirmation after site inspection and product selection.
 2. Payment terms and installation schedule will be confirmed before order.
 3. Warranty terms depend on final selected equipment.
 4. Offer valid until the date stated above.</textarea></div><p class="clear-note">Apply GST only when legally applicable. Confirm tax treatment with your accountant.</p></div>
-      <div class="form-actions"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" id="printQuote" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" id="saveLocal" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div><div class="more-quote-actions"><button type="button" id="resetDemo">+ New Quotation</button><button type="button" id="downloadQuote">Download Draft JSON</button></div><p class="clear-note">Saved drafts remain on this device only and are not backed up online. Avoid shared computers for customer information.</p>
+      <div class="form-actions"><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" id="printQuote" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" id="saveLocal" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div><div class="more-quote-actions"><button type="button" id="resetDemo">+ New Quotation</button><button type="button" id="downloadQuote">Download Draft JSON</button></div><p class="clear-note">Saving uploads your quotation to the private cloud. A unique quotation number is assigned when the quotation is first saved.</p>
     </div></section>
     <section class="preview-card"><div class="preview-header"><div><b>Live Quotation Preview</b> <small>· A4 style</small></div><div class="quote-toolbar" role="group" aria-label="Quotation actions"><button type="button" class="qa-btn qa-print" id="printQuote2" data-quote-action="print" aria-label="Print quotation"><span aria-hidden="true">🖨</span> Print</button><button type="button" class="qa-btn qa-save" data-quote-action="save" aria-label="Save quotation"><span aria-hidden="true">▣</span> Save</button><button type="button" class="qa-btn qa-share" data-quote-action="share" aria-label="Share quotation"><span aria-hidden="true">↗</span> Share</button></div></div>
       <article class="quote-paper" id="quotePaper" aria-label="Printable VIZCAM quotation"><div class="quote-top"><img class="quote-logo" src="assets/vizcam-logo-2026.webp" alt="VIZCAM company logo"/><div class="company-info"><strong id="printCompany">VIZCAM</strong><div id="printAddress">Manjeri, Malappuram, Kerala</div><div id="printPhone">+91 89438 54151</div><div id="printEmail">service@vizcam.in</div><div id="printGST"></div><div>www.vizcam.in</div></div></div>
@@ -196,6 +202,7 @@
 </div>
 <dialog id="quoteShareDialog" class="share-dialog" aria-labelledby="shareTitle"><div class="share-dialog-heading"><div><span class="pill">VIZCAM QUOTATION</span><h2 id="shareTitle">Share Quotation</h2></div><button type="button" id="closeShare" aria-label="Close share options">×</button></div><p id="shareQuoteInfo" class="share-intro"></p><div class="share-options"><button type="button" id="sharePDF" class="share-option"><strong>📄 Share PDF</strong><span>Share the complete quotation document on supported devices</span></button><button type="button" id="savePDF" class="share-option"><strong>⬇ Download PDF</strong><span>Save a copy to attach in WhatsApp or email</span></button><button type="button" id="shareWhatsApp" class="share-option"><strong>💬 WhatsApp Message</strong><span>Share quotation number, customer, items and total as text</span></button></div><p class="share-tip">Sharing a PDF depends on your device. If unavailable, download the PDF and attach it manually.</p></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 'use strict';
 (function () {
@@ -207,36 +214,98 @@
   const money=n=>'₹'+new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(isFinite(n)?n:0);
   const shortDate=s=>{if(!s)return '—';const d=new Date(s+'T12:00:00');return isNaN(d.valueOf())?s:d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});};
   function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').classList.remove('show'),3200)}
-  let pinUnlocked=false;  // This SHA-256 comparison is only a UI gate, not secure server authentication.
-  const PIN_CHECK='a58bc8db2aa90235ae910d567fdf63d326de2b82ea7c98ffd11c9f491e559815';
+  const CLOUD_EMAIL='info@vizcam.in';
+  const cloud=window.supabase?.createClient(
+    'https://xpjgyamsticfsbjtdqbm.supabase.co',
+    'sb_publishable_CCUPRtYlBiiOM9UsfF0JxA_diHnD3Tl',
+    {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
+  )||null;
+  let cloudAccess=false;
   function openModal(){
     modal.classList.add('show');
-    $('adminPin').value='';
-    $('adminPin').setAttribute('aria-invalid','false');
-    $('pinError').textContent='';
-    $('adminPin').focus();
+    if(!$('pinError').textContent.trim())$('pinError').textContent='';
   }
   function closeModal(){modal.classList.remove('show')}
-  function showAdmin(){
-    if(!pinUnlocked){openModal();return}
-    closeModal();home.style.display='none';admin.classList.add('open');showPanel('overview');window.scrollTo(0,0);render();
+  async function refreshRecords(){
+    if(!cloud||!cloudAccess)return false;
+    try{
+      const found=[];
+      for(let offset=0;offset<10000;offset+=1000){
+        const {data,error}=await cloud.from('vizcam_quotations')
+          .select('id,customer,quote_date,total,status,paid_at,rejected_at,data,created_at,updated_at')
+          .order('created_at',{ascending:false}).range(offset,offset+999);
+        if(error)throw error;
+        for(const q of data||[])found.push({
+          id:q.id,customer:q.customer,date:q.quote_date,total:Number(q.total)||0,
+          status:q.status,paidAt:q.paid_at,rejectedAt:q.rejected_at,
+          createdAt:q.created_at,updatedAt:q.updated_at,data:q.data||{}
+        });
+        if(!data||data.length<1000)break;
+      }
+      if(!cloudAccess)return false;
+      records=found;
+      renderOverview();
+      return true;
+    }catch(err){
+      toast('Cloud refresh failed: '+(err.message||'Connection error'));
+      return false;
+    }
   }
-  function showHome(){
-    pinUnlocked=false;
-    closeModal();admin.classList.remove('open');home.style.display='block';window.scrollTo(0,0);
+  async function showAdmin(){
+    if(!cloud){openModal();$('pinError').textContent='Cloud sign-in is unavailable. Check your internet connection and reload.';return}
+    try{
+      const {data:userData,error:userError}=await cloud.auth.getUser();
+      if(userError||!userData?.user){cloudAccess=false;openModal();return}
+      const {data:allowed,error:allowError}=await cloud.rpc('vizcam_is_admin');
+      if(allowError||allowed!==true){
+        cloudAccess=false;openModal();
+        $('pinError').textContent='Access denied. Sign in with the verified authorized VIZCAM email address.';
+        return;
+      }
+      cloudAccess=true;
+      if(!await refreshRecords())throw new Error('Could not load quotations from cloud. Please try again.');
+      closeModal();home.style.display='none';admin.classList.add('open');
+      showPanel('overview');window.scrollTo(0,0);render();
+    }catch(err){
+      cloudAccess=false;admin.classList.remove('open');home.style.display='block';openModal();
+      $('pinError').textContent=err.message||'Secure cloud login failed.';
+    }
   }
-  $('openLogin').addEventListener('click',openModal);$('heroOpenLogin').addEventListener('click',openModal);
+  async function showHome(){
+    cloudAccess=false;admin.classList.remove('open');home.style.display='block';
+    records=[];renderOverview();closeModal();
+    if(cloud)await cloud.auth.signOut();
+    window.scrollTo(0,0);
+  }
+  $('openLogin').addEventListener('click',openModal);
+  $('heroOpenLogin').addEventListener('click',openModal);
   $('quickPreview').addEventListener('click',openModal);
-  $('pinForm').addEventListener('submit',async function(e){
+  $('emailForm').addEventListener('submit',async e=>{
     e.preventDefault();
-    const pin=$('adminPin').value.trim();
-    if(!pin){$('pinError').textContent='Please enter your PIN.';$('adminPin').focus();return}
-    try {
-      const bytes=new TextEncoder().encode('vizcam|admin|'+pin);
-      const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
-      if(hash!==PIN_CHECK){$('pinError').textContent='Incorrect PIN. Please try again.';$('adminPin').value='';$('adminPin').focus();return}
-      pinUnlocked=true;showAdmin();
-    }catch(err){$('pinError').textContent='This browser cannot open the admin screen. Please use a modern browser over HTTPS.'}
+    if(!cloud){$('pinError').textContent='Unable to load secure login. Check your internet and reload.';return}
+    const button=$('sendMagicLink');button.disabled=true;
+    $('pinError').textContent='Sending secure sign-in link...';
+    try{
+      const {error}=await cloud.auth.signInWithOtp({
+        email:CLOUD_EMAIL,
+        options:{emailRedirectTo:'https://www.vizcam.in/admin.html',shouldCreateUser:true}
+      });
+      if(error)throw error;
+      $('pinError').textContent='Link requested. Check info@vizcam.in, including Spam. Open the link on the device where you want to sign in.';
+    }catch(err){$('pinError').textContent='Email link failed: '+(err.message||'Try again later')}
+    finally{button.disabled=false}
+  });
+  $('exportLegacyPrelogin').addEventListener('click',()=>{
+    const legacy=loadRecords();
+    if(!legacy.length){$('pinError').textContent='No old browser quotations were found on this device.';return}
+    downloadJSON({type:'vizcam-quotation-backup',version:2,exportedAt:new Date().toISOString(),quotations:legacy},
+      'VIZCAM_OLD_BROWSER_BACKUP_'+todayISO()+'.json');
+    $('pinError').textContent=legacy.length+' old quotation(s) exported. Keep your backup safely.';
+  });
+  // Avoid calling Supabase Auth methods while it holds an auth-state lock.
+  if(cloud)cloud.auth.onAuthStateChange((event,session)=>{
+    if(event==='SIGNED_IN'&&session){setTimeout(()=>{if(!cloudAccess)showAdmin()},0)}
+    if(event==='SIGNED_OUT'){cloudAccess=false;records=[];admin.classList.remove('open');home.style.display='block'}
   });
   $('closeLogin').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal()});
@@ -276,7 +345,7 @@
     try{const parsed=JSON.parse(localStorage.getItem(QUOTE_STORAGE)||'[]');return Array.isArray(parsed)?parsed.filter(x=>x&&typeof x.id==='string'&&/^VC-Q-\d{6}-\d{4,}$/.test(x.id)&&x.data&&x.data.clientName).slice(0,10000):[]}
     catch{return []}
   }
-  function persist(){try{localStorage.setItem(QUOTE_STORAGE,JSON.stringify(records));return true}catch{toast('Could not save. Check browser storage and export a backup.');return false}}
+  function persist(){throw new Error('Local quotation saving is disabled in cloud mode.')}
   function datePart(iso){const parts=(iso||todayISO()).split('-');return (parts[2]||'01')+(parts[1]||'01')+(parts[0]||'2026').slice(-2)}
   function nextNumber(iso){const prefix='VC-Q-'+datePart(iso)+'-';let max=0;for(const record of records){if(record.id.startsWith(prefix)){max=Math.max(max,Number(record.id.slice(prefix.length))||0)}}return prefix+String(max+1).padStart(4,'0')}
   function calculateTotal(s){const sub=(s.items||[]).reduce((sum,item)=>sum+safeNum(item.qty)*safeNum(item.rate),0);const taxable=Math.max(0,sub-Math.min(sub,safeNum(s.discount)));return Math.round((taxable+taxable*safeNum(s.taxRate)/100)*100)/100}
@@ -285,7 +354,7 @@
     fields.forEach(k=>{$(k).value=savedInitial[k]??''});
     $('quoteDate').value=todayISO();$('validUntil').value=expiryAfterToday();
     $('clientName').value='';$('clientPhone').value='';$('clientLocation').value='';$('clientGST').value='';
-    $('quoteNumber').value=nextNumber($('quoteDate').value);
+    $('quoteNumber').value='Assigned when saved';
     items=defaultItems.map(x=>({...x}));currentRecord=null;lineEditor();render();showPanel('generator');
     toast('New quotation ready: '+$('quoteNumber').value);
   }
@@ -296,21 +365,33 @@
     currentRecord=q.id;lineEditor();render();showPanel('generator');
     window.scrollTo(0,0);
   }
-  function saveQuotation(){
+  let savingCloud=false;
+  async function saveQuotation(){
+    if(!cloudAccess){toast('Sign in to save in the cloud.');return false}
     const name=$('clientName').value.trim();
-    if(!name){toast('Please enter customer name before saving.');$('clientName').focus();return false}
-    let id=currentRecord||nextNumber($('quoteDate').value);
-    if(!currentRecord && records.some(x=>x.id===id))id=nextNumber($('quoteDate').value);
-    $('quoteNumber').value=id;
-    const s=state();s.quoteNumber=id;
-    const older=records.find(x=>x.id===id);
-    if(older&&older.status==='completed'&&!window.confirm('This quotation is marked Paid. Save changes to the completed quotation?'))return false;
-    if(older&&older.status==='rejected'&&!window.confirm('This quotation is Rejected. Save edits while keeping it in Rejected?'))return false;
-    const q={id,customer:name,date:s.quoteDate,total:calculateTotal(s),status:older?.status||'pending',paidAt:older?.paidAt||null,rejectedAt:older?.rejectedAt||null,createdAt:older?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),data:s};
-    const next=records.filter(x=>x.id!==id);next.push(q);next.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
-    const before=records;records=next;
-    if(!persist()){records=before;return false}
-    currentRecord=id;renderOverview();toast('Quotation saved: '+id);return true;
+    if(!name){toast('Enter customer name first.');$('clientName').focus();return false}
+    if(savingCloud){toast('Save already in progress.');return false}
+    const older=records.find(q=>q.id===currentRecord);
+    if(older?.status==='completed'&&!window.confirm('Update this completed quotation?'))return false;
+    if(older?.status==='rejected'&&!window.confirm('Update this rejected quotation without changing its status?'))return false;
+    savingCloud=true;
+    const body=state();
+    const payload={customer:name,date:body.quoteDate,total:calculateTotal(body),
+       status:older?.status||'pending',data:body};
+    try{
+      const {data,error}=await cloud.rpc('vizcam_save_quotation',{
+        p_record:payload,p_quote_id:currentRecord||null
+      });
+      if(error)throw error;
+      if(!data?.id)throw new Error('The cloud did not return a quotation number.');
+      currentRecord=data.id;
+      $('quoteNumber').value=data.id;
+      render();
+      await refreshRecords();
+      toast('Saved in cloud: '+data.id);
+      return true;
+    }catch(err){toast('Not saved to cloud: '+(err.message||'Connection failed'));return false}
+    finally{savingCloud=false}
   }
   function showPanel(view,filter){
     const showOverview=view!=='generator';
@@ -323,24 +404,26 @@
       renderOverview();
     }else $('quotesLink').classList.add('active');
   }
-  function updateQuotationStatus(q,newStatus){
+  async function updateQuotationStatus(q,newStatus){
+    if(!cloudAccess){toast('Sign in to update payment status.');return}
     const oldStatus=q.status||'pending';
-    const allowed=(oldStatus==='pending'&&(newStatus==='completed'||newStatus==='rejected'))||(oldStatus==='rejected'&&newStatus==='pending');
+    const allowed=(oldStatus==='pending'&&(newStatus==='completed'||newStatus==='rejected'))||
+      (oldStatus==='rejected'&&newStatus==='pending');
     if(!allowed){toast('This status change is not available.');return}
-    const questions={
+    const prompts={
       completed:'Confirm full payment received from '+q.customer+' for '+q.id+'?',
       rejected:'Reject quotation '+q.id+' for '+q.customer+'?',
-      pending:'Move rejected quotation '+q.id+' back to Pending?'
+      pending:'Restore quotation '+q.id+' to Pending?'
     };
-    if(!window.confirm(questions[newStatus]))return;
-    const previous={...q};
-    const now=new Date().toISOString();
-    q.status=newStatus;q.updatedAt=now;
-    if(newStatus==='completed'){q.paidAt=now;q.rejectedAt=null}
-    else if(newStatus==='rejected'){q.rejectedAt=now;q.paidAt=null}
-    else{q.paidAt=null;q.rejectedAt=null}
-    if(!persist()){Object.assign(q,previous);renderOverview();return}
-    renderOverview();toast(q.id+' moved to '+newStatus[0].toUpperCase()+newStatus.slice(1));
+    if(!window.confirm(prompts[newStatus]))return;
+    try{
+      const {data,error}=await cloud.rpc('vizcam_set_status',{
+         p_quote_id:q.id,p_status:newStatus
+      });
+      if(error)throw error;
+      await refreshRecords();
+      toast(q.id+' moved to '+newStatus);
+    }catch(err){toast('Cloud status update failed: '+(err.message||'Please retry'))}
   }
   function renderOverview(){
     show('statAll',String(records.length));
@@ -382,13 +465,13 @@
     }
     $('recordsEmpty').hidden=visible.length!==0;
   }
-  records=loadRecords();
-  $('quoteDate').value=todayISO();$('validUntil').value=expiryAfterToday();$('quoteNumber').value=nextNumber($('quoteDate').value);
+  records=[];
+  $('quoteDate').value=todayISO();$('validUntil').value=expiryAfterToday();$('quoteNumber').value='Assigned when saved';
   fields.forEach(k=>{$(k).addEventListener('input',render);savedInitial[k]=$(k).value});lineEditor();render();
   $('addItem').addEventListener('click',()=>{if(items.length>=40){toast('Maximum 40 quotation items.');return}items.push({name:'New item / service',qty:1,unit:'Nos',rate:0});lineEditor();render()});
-  $('quoteDate').addEventListener('change',()=>{if(!currentRecord){$('quoteNumber').value=nextNumber($('quoteDate').value);render()}});
-  function printQuote(skipSave=false){
-    if(!skipSave&&!saveQuotation())return;
+  $('quoteDate').addEventListener('change',()=>{if(!currentRecord){$('quoteNumber').value='Assigned when saved';render()}});
+  async function printQuote(skipSave=false){
+    if(!skipSave&&!await saveQuotation())return;
     showPanel('generator');
     render();
     window.print();
@@ -418,8 +501,8 @@
       'www.vizcam.in'
     ].join('\n');
   }
-  function openShareDialog(skipSave=false){
-    if(!skipSave&&!saveQuotation())return;
+  async function openShareDialog(skipSave=false){
+    if(!skipSave&&!await saveQuotation())return;
     render();
     $('shareQuoteInfo').textContent=($('quoteNumber').value||'Quotation')+' · '+$('clientName').value+' · '+$('printTotal').textContent;
     $('quoteShareDialog').showModal();
@@ -557,28 +640,67 @@
   for(const [tab,filter] of [['tabAll','all'],['tabPending','pending'],['tabCompleted','completed'],['tabRejected','rejected']])$(tab).addEventListener('click',()=>showPanel('overview',filter));
   $('quoteSearch').addEventListener('input',renderOverview);
   $('exportBackup').addEventListener('click',()=>{
-    downloadJSON({type:'vizcam-quotation-backup',version:2,exportedAt:new Date().toISOString(),quotations:records},'VIZCAM_Quotations_Backup_'+todayISO()+'.json');
-    toast('Backup downloaded. Store it safely.');
+    if(!cloudAccess){toast('Sign in to export cloud records.');return}
+    downloadJSON({type:'vizcam-quotation-backup',version:3,exportedAt:new Date().toISOString(),
+      source:'VIZCAM Cloud Quotations',quotations:records},
+      'VIZCAM_CLOUD_BACKUP_'+todayISO()+'.json');
+    toast('Cloud backup downloaded.');
   });
+  async function importLegacy(quotations,source){
+    if(!cloudAccess){toast('Sign in to import quotations.');return}
+    const valid=quotations.filter(q=>q&&typeof q.id==='string'&&
+      /^VC-Q-\d{6}-\d{4,}$/.test(q.id)&&q.data&&q.data.clientName).slice(0,10000);
+    if(!valid.length){toast('No valid quotations to import.');return}
+    if(!window.confirm('Import '+valid.length+' quotations from '+source+' into VIZCAM Cloud?\n\nExisting cloud records will NOT be overwritten. Conflicting quotation numbers will be skipped. Keep your original backup.'))return;
+    let imported=0,duplicates=0,conflicts=0,failed=0;
+    const importBtn=$('importBrowser');importBtn.disabled=true;
+    try{
+      for(const q of valid){
+        try{
+          const {data,error}=await cloud.rpc('vizcam_import_quotation',{p_record:q});
+          if(error)throw error;
+          if(data==='imported')imported++;
+          else if(data==='already-imported')duplicates++;
+          else conflicts++;
+        }catch(err){failed++}
+      }
+      await refreshRecords();
+      const result='Cloud import: '+imported+' added, '+duplicates+' already there, '+conflicts+' conflicts, '+failed+' errors.';
+      toast(result);
+      window.alert(result+(conflicts||failed?'\nReview conflicting quotations. Keep your original backup; nothing was overwritten.':''));
+    }finally{importBtn.disabled=false}
+  }
+  $('importBrowser').addEventListener('click',()=>importLegacy(loadRecords(),'this browser'));
   $('importBackup').addEventListener('click',()=>$('backupFile').click());
   $('backupFile').addEventListener('change',async function(){
     const file=this.files?.[0];this.value='';if(!file)return;
-    if(file.size>3000000){toast('Backup too large.');return}
+    if(file.size>5000000){toast('Backup too large (maximum 5 MB).');return}
     try{
       const obj=JSON.parse(await file.text());
-      if(obj.type!=='vizcam-quotation-backup'||!Array.isArray(obj.quotations))throw new Error('Not a VIZCAM quotation backup');
-      const incoming=obj.quotations.filter(q=>q&&/^VC-Q-\d{6}-\d{4,}$/.test(q.id)&&q.data&&q.data.clientName).slice(0,10000);
-      if(!window.confirm('Restore '+incoming.length+' quotations? Records with the same number will be updated.'))return;
-      const map=new Map(records.map(q=>[q.id,q]));
-      incoming.forEach(q=>map.set(q.id,{...q,customer:String(q.customer||q.data.clientName).slice(0,100),status:q.status==='completed'?'completed':q.status==='rejected'?'rejected':'pending'}));
-      const prev=records;records=Array.from(map.values());
-      if(!persist())records=prev;
-      else{renderOverview();toast('Backup imported: '+incoming.length+' quotations.')}
+      if(obj.type!=='vizcam-quotation-backup'||!Array.isArray(obj.quotations))
+        throw new Error('Not a VIZCAM quotation backup');
+      await importLegacy(obj.quotations,file.name);
     }catch(err){toast('Import failed: '+err.message)}
   });
-  window.addEventListener('storage',e=>{if(e.key===QUOTE_STORAGE){records=loadRecords();renderOverview()}});
+  $('refreshCloud').addEventListener('click',async()=>{if(await refreshRecords())toast('Cloud quotations updated.')});
+  window.addEventListener('focus',()=>{if(cloudAccess)refreshRecords()});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cloudAccess)refreshRecords()});
+  function updateLegacyCount(){
+    const n=loadRecords().length;
+    $('legacyCount').textContent=n ? n+' old browser quotation(s) available to import.' : '';
+    $('importBrowser').hidden=n===0;
+  }
+  const baseRenderOverview=renderOverview;
+  renderOverview=function(){baseRenderOverview();updateLegacyCount()};
   renderOverview();
-  openModal();
+  if(cloud){
+    cloud.auth.getSession().then(({data})=>{
+      if(data?.session)showAdmin();else openModal();
+    }).catch(()=>openModal());
+  }else{
+    openModal();
+    $('pinError').textContent='The secure login library could not load. Please check your connection and reload.';
+  }
 })();
 </script>
 </body></html>

@@ -1,0 +1,20 @@
+# VIZCAM
+> CCTV installation, networking and security systems serving Manjeri and Malappuram, Kerala, India.
+
+Website: https://www.vizcam.in/
+Email: service@vizcam.in
+Phone / WhatsApp: +91 89438 54151
+
+## Website sections
+- [CCTV installation and maintenance services](https://www.vizcam.in/#services)
+- [CCTV products with WhatsApp order enquiries](https://www.vizcam.in/#products)
+- [CCTV promotional and awareness posters](https://www.vizcam.in/#cctv-posters)
+- [About VIZCAM](https://www.vizcam.in/#about)
+- [Contact and enquiry](https://www.vizcam.in/#contact)
+
+## Services
+CCTV camera installation, troubleshooting and servicing, networking, access control, automatic gates, and home automation.
+
+## Notes
+This file is an optional informational index for AI tools. It does not control search engine rankings or replace normal website pages, robots.txt, or the XML sitemap.
+The quotation admin area is not public documentation.

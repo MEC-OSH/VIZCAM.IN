@@ -383,3 +383,51 @@ body:has(.vizcam-product-modal[open]){overflow:hidden}
 .vizcam-product-modal-gallery--single{grid-template-columns:minmax(0,1fr);max-width:410px;margin-inline:auto}
 .vizcam-product-modal-gallery--single img{height:min(48vh,340px);object-fit:contain}
 @media(max-width:680px){.vizcam-product-modal-gallery--single img{height:260px}}
+
+/* Lighthouse October 2026: accessible contrast and minimum touch targets. */
+.hero-image-caption small,
+.vizcam-poster-count,
+.vizcam-poster-caption,
+.photo-note,
+.about-aside small,
+.contact-details span,
+.enquiry-box form small,
+.footer-top p,
+.footer-bottom,
+.footer-bottom a{
+  color:#415568;
+}
+.vizcam-product-order,
+.floating-whatsapp{background:#087343;color:#fff;border-color:#087343}
+.vizcam-product-order:hover,
+.floating-whatsapp:hover{background:#055f36;color:#fff}
+.promo-label{color:#ffffff}
+.vizcam-poster-dots{gap:2px}
+.vizcam-poster-dots .vizcam-poster-dot{
+  width:34px;height:34px;
+  border:0;background:transparent;box-shadow:none;border-radius:50%;
+  display:grid;place-items:center;padding:0;cursor:pointer;
+}
+.vizcam-poster-dots .vizcam-poster-dot::before{
+  content:"";width:12px;height:12px;border-radius:50%;
+  background:#9db4c9;display:block;
+}
+.vizcam-poster-dots .vizcam-poster-dot.is-active::before{
+  background:#0968bf;box-shadow:0 0 0 3px #dcecfb;
+}
+.vizcam-product-slider-dots{gap:0;padding:2px 4px}
+.vizcam-product-slider-dots button,
+#products .vizcam-product-slider-dots button{
+  width:31px;height:31px;border:0;border-radius:50%;
+  background:transparent;transform:none;
+  display:grid;place-items:center;padding:0;cursor:pointer;
+}
+.vizcam-product-slider-dots button::before{
+  content:"";width:10px;height:10px;display:block;
+  border-radius:50%;background:#92aabf;
+}
+.vizcam-product-slider-dots button.is-active::before{background:#075fae}
+.vizcam-poster-dot:focus-visible,
+.vizcam-product-slider-dots button:focus-visible{
+  outline:3px solid #075fae;outline-offset:0;
+}

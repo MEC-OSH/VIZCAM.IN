@@ -1,5 +1,12 @@
 'use strict';
 (function () {
+  // Non-blocking Google font CSS: system fonts remain usable while web fonts load.
+  const fonts=document.querySelector('[data-async-fonts]');
+  if(fonts){
+    const enableFonts=()=>{fonts.media='all'};
+    if(fonts.sheet)enableFonts();
+    else fonts.addEventListener('load',enableFonts,{once:true});
+  }
   const menuButton = document.querySelector('.menu-toggle');
   const nav = document.querySelector('#site-nav');
   if (menuButton && nav) {

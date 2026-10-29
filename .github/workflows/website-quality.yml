@@ -1,0 +1,83 @@
+name: VIZCAM SEO and Website Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  static-seo-check:
+    name: Check SEO files, links, CTAs and mobile layout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run repository checks
+        run: python scripts/check_website.py
+
+  lighthouse:
+    name: Lighthouse mobile and desktop (live public homepage)
+    needs: static-seo-check
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify live site and sitemap respond
+        run: |
+          curl -fIL --retry 2 --max-time 30 https://www.vizcam.in/
+          curl -fsS --retry 2 --max-time 30 https://www.vizcam.in/sitemap.xml -o /dev/null
+      - name: Prepare browser
+        run: |
+          google-chrome --version
+          mkdir -p reports
+      - name: Run mobile Lighthouse
+        run: |
+          npx --yes --package=lighthouse@12.8.2 lighthouse https://www.vizcam.in/ \
+            --output=json --output-path=reports/mobile.json \
+            --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
+            --only-categories=performance,accessibility,best-practices,seo --quiet
+      - name: Run desktop Lighthouse
+        run: |
+          npx --yes --package=lighthouse@12.8.2 lighthouse https://www.vizcam.in/ \
+            --preset=desktop --output=json --output-path=reports/desktop.json \
+            --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
+            --only-categories=performance,accessibility,best-practices,seo --quiet
+      - name: Summarize scores
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          rows=[]
+          for mode in ('mobile','desktop'):
+              f=Path('reports')/(mode+'.json')
+              if not f.exists():
+                  rows.append('| '+mode+' | Not completed | - | - | - |')
+                  continue
+              data=json.loads(f.read_text())
+              cats=data.get('categories',{})
+              scores=[str(round(100*cats[k]['score'])) if k in cats and cats[k].get('score') is not None else 'N/A' for k in ('performance','accessibility','best-practices','seo')]
+              rows.append('| '+mode+' | '+' | '.join(scores)+' |')
+          table="# VIZCAM Lighthouse reports\n\n| Device | Performance | Accessibility | Best Practices | SEO |\n|---|---:|---:|---:|---:|\n"+"\n".join(rows)+"\n\nScores are a snapshot, not a guarantee of Google's indexing or ranking.\n"
+          print(table)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(table)
+          PY
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vizcam-lighthouse-reports
+          path: reports/
+          if-no-files-found: warn

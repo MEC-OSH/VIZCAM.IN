@@ -1,6 +1,7 @@
 'use strict';
 (function(){
-  // GA4 loads only after a visitor has opted in. No identifiers or form contents are sent by us.
+  // Google tag is initialized in the page head with consent denied by default.
+  // Analytics storage and measurement events are enabled only after opt-in.
   const GA_ID = 'G-72FYFHPDTC';
   const STORAGE_KEY = 'vizcam-analytics-consent-v1';
   const banner = document.getElementById('vizcamAnalyticsConsent');
@@ -20,21 +21,33 @@
   function showBanner(){ banner.hidden=false; }
   function hideBanner(){ banner.hidden=true; }
 
-  function loadAnalytics(){
+  function enableAnalytics(){
     if(analyticsActive) return;
+    if(typeof window.gtag!=='function'){
+      console.warn('VIZCAM: Google tag initialization unavailable.');
+      return;
+    }
     analyticsActive=true;
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag(){window.dataLayer.push(arguments)};
-    window.gtag('js',new Date());
-    window.gtag('config',GA_ID,{
-      allow_google_signals:false,
-      allow_ad_personalization_signals:false
+    window.gtag('consent','update',{
+      analytics_storage:'granted',
+      ad_storage:'denied',
+      ad_user_data:'denied',
+      ad_personalization:'denied'
     });
-    const script=document.createElement('script');
-    script.async=true;
-    script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(GA_ID);
-    script.onerror=function(){ console.warn('VIZCAM: Google Analytics could not load.'); };
-    document.head.appendChild(script);
+    window.gtag('event','page_view',{
+      page_title:document.title,
+      page_location:window.location.href
+    });
+  }
+  function denyAnalytics(){
+    if(typeof window.gtag==='function'){
+      window.gtag('consent','update',{
+        analytics_storage:'denied',
+        ad_storage:'denied',
+        ad_user_data:'denied',
+        ad_personalization:'denied'
+      });
+    }
   }
   function clearGACookies(){
     document.cookie.split(';').forEach(function(part){
@@ -48,17 +61,18 @@
     const wasActive=analyticsActive;
     store(value);
     hideBanner();
-    if(value==='accepted')loadAnalytics();
-    else if(wasActive){
+    if(value==='accepted')enableAnalytics();
+    else {
+      denyAnalytics();
       clearGACookies();
-      // Rebuild the page without the tracking library when consent is withdrawn.
-      window.location.reload();
+      // Reset in-memory analytics state when a visitor withdraws consent.
+      if(wasActive)window.location.reload();
     }
   }
   accept.addEventListener('click',function(){setChoice('accepted')});
   reject.addEventListener('click',function(){setChoice('declined')});
   if(settings)settings.addEventListener('click',function(){showBanner()});
-  if(choice==='accepted') loadAnalytics();
+  if(choice==='accepted') enableAnalytics();
   else if(choice!=='declined') showBanner();
 
   function recordEvent(name,params){

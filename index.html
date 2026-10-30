@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://images.unsplash.com https://www.googletagmanager.com https://*.google-analytics.com data:; connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- Google Analytics 4: initialize denied consent before the Google tag executes. -->
+<script src="js/ga4-init.js?v=20261030-tagfix"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-72FYFHPDTC"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <meta name="description" content="VIZCAM provides CCTV installation, camera repair, networking and home security in Manjeri and Malappuram, Kerala. WhatsApp +91 89438 54151.">
@@ -437,7 +440,7 @@
 <div id="vizcamAnalyticsConsent" class="vizcam-analytics-consent" role="region" aria-label="Analytics privacy preferences" hidden>
   <div class="vizcam-analytics-consent-text">
     <strong>Website analytics</strong>
-    <p>May we use Google Analytics to understand website visits and improve VIZCAM? This is optional. Your enquiry form stays on WhatsApp.</p>
+    <p>The Google tag loads with analytics cookies disabled by default and may send limited consent-state signals. Accept to enable website analytics, or decline to keep measurement cookies off. Your enquiry form stays on WhatsApp.</p>
   </div>
   <div class="vizcam-analytics-consent-actions">
     <button type="button" id="vizcamRejectAnalytics">Decline</button>
@@ -446,6 +449,6 @@
 </div>
 <a class="floating-whatsapp" href="https://wa.me/918943854151?text=Hi%20VIZCAM%2C%20I%20need%20CCTV%20installation%20or%20service." target="_blank" rel="noopener noreferrer" aria-label="Chat with VIZCAM on WhatsApp"><span aria-hidden="true">☎</span><span>WhatsApp</span></a>
 <script src="js/script.js?v=20261029-a11y1" defer></script>
-<script src="js/analytics.js?v=20261030-ga4" defer></script>
+<script src="js/analytics.js?v=20261030-tagfix" defer></script>
 </body>
 </html>

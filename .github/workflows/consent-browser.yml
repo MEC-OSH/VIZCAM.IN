@@ -1,0 +1,28 @@
+name: VIZCAM Cookie Consent Browser Test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'js/analytics.js'
+      - 'js/ga4-init.js'
+      - '.github/workflows/consent-browser.yml'
+      - 'scripts/check_consent.cjs'
+  schedule:
+    - cron: '35 3 * * 1'
+permissions:
+  contents: read
+jobs:
+  consent-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser automation dependency
+        run: npm install --no-save --ignore-scripts puppeteer-core@24
+      - name: Test Google tag, denied default and CookieYes consent
+        run: node scripts/check_consent.cjs

@@ -431,3 +431,31 @@ body:has(.vizcam-product-modal[open]){overflow:hidden}
 .vizcam-product-slider-dots button:focus-visible{
   outline:3px solid #075fae;outline-offset:0;
 }
+
+/* Optional Google Analytics consent. No tracking loads until accepted. */
+.vizcam-analytics-consent[hidden]{display:none!important}
+.vizcam-analytics-consent{
+  position:fixed;z-index:250;left:16px;right:16px;bottom:16px;
+  width:min(760px,calc(100% - 32px));margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding:20px 22px;border:1px solid #d3e7f8;border-radius:15px;
+  background:#fff;color:#173f5a;box-shadow:0 15px 55px rgba(5,36,69,.22);
+}
+.vizcam-analytics-consent-text{flex:1;min-width:0}
+.vizcam-analytics-consent strong{display:block;font-size:.92rem}
+.vizcam-analytics-consent p{margin:6px 0 0;line-height:1.55;color:#4b6479;font-size:.82rem}
+.vizcam-analytics-consent-actions{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.vizcam-analytics-consent-actions button,.vizcam-privacy-trigger{
+  cursor:pointer;border:1px solid #bfd5e6;border-radius:8px;padding:10px 12px;
+  background:#f3f8fc;color:#174d78;font:inherit;font-size:.82rem;font-weight:700;
+}
+#vizcamAcceptAnalytics{background:#0b66b5;color:#fff;border-color:#0b66b5}
+.vizcam-privacy-trigger{background:transparent;color:inherit;border:1px solid currentColor;margin:8px 0 0;font-size:.72rem;padding:7px 10px}
+.vizcam-analytics-consent button:focus-visible,.vizcam-privacy-trigger:focus-visible{
+  outline:3px solid #f5b23c;outline-offset:3px
+}
+@media(max-width:620px){
+ .vizcam-analytics-consent{align-items:stretch;flex-direction:column;gap:14px;padding:16px;bottom:10px}
+ .vizcam-analytics-consent-actions{display:grid;grid-template-columns:1fr 1fr}
+ .vizcam-analytics-consent-actions button{font-size:.81rem;padding:11px 5px}
+}

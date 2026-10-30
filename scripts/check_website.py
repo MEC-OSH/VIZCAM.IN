@@ -104,6 +104,16 @@ for anchor in home.links:
         check(href[1:] in home.ids, f"anchor {href} points to an existing section")
 
 check(bool(home.forms), "visitor enquiry form exists")
+check('cdn-cookieyes.com/client_data/014019ae73df6d6fc66768e0/script.js' in html, "CookieYes tag exists")
+check('G-72FYFHPDTC' in html, "GA4 measurement ID exists")
+check(html.find('js/ga4-init.js') < html.find('id="cookieyes"') < html.find('googletagmanager.com/gtag/js?id='), "Consent scripts load in the expected order")
+check(all('src="'+asset+'"' in html for asset in (
+  'assets/vizcam-cctv-camera-types-720.webp',
+  'assets/vizcam-poster-cctv-repair-900.webp',
+  'assets/vizcam-poster-cctv-installation-900.webp',
+  'assets/vizcam-poster-home-security-900.webp',
+  'assets/vizcam-poster-family-security-900.webp'
+)), "Optimized display images are used")
 check(WHATSAPP in html and WHATSAPP in script, "WhatsApp number is consistent")
 check("showModal()" in script and "data-product-details" in html,
       "product details dialog is wired up")

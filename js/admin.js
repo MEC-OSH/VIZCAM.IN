@@ -42,7 +42,7 @@
   $('closeLogin').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal()});
   $('backHome').addEventListener('click',showHome);$('homeLogo').addEventListener('click',e=>{e.preventDefault();showHome()});
-  $('quotesLink').addEventListener('click',()=>showPanel('generator'));
+  $('quotesLink').addEventListener('click',newQuotation);
   function safeNum(x){const v=Number(x);return isFinite(v)&&v>0?v:0}
   function createInput(placeholder,value,onChange,type='text'){
     const input=document.createElement('input');input.placeholder=placeholder;input.type=type;input.value=value;input.addEventListener('input',e=>onChange(e.target.value));return input;
@@ -69,10 +69,11 @@
     let discount=Math.min(sub,safeNum($('discount').value));const rate=safeNum($('taxRate').value);const taxable=sub-discount;const tax=taxable*rate/100;const total=taxable+tax;
     show('printSubtotal',money(sub));show('printDiscount','−'+money(discount));show('printTaxLabel','GST ('+rate+'%)');show('printTax',money(tax));show('printTotal',money(total));
     $('printDiscountRow').style.display=discount?'flex':'none';$('printTaxRow').style.display=rate?'flex':'none';
+    if(invoiceRecord)renderInvoicePresentation();
   }
   function todayISO(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
   const QUOTE_STORAGE='vizcam-quotes-v2';
-  let currentRecord=null,activeFilter='all',records=[];
+  let currentRecord=null,invoiceRecord=null,activeFilter='all',records=[];
   function loadRecords(){
     try{const parsed=JSON.parse(localStorage.getItem(QUOTE_STORAGE)||'[]');return Array.isArray(parsed)?parsed.filter(x=>x&&typeof x.id==='string'&&/^VC-Q-\d{6}-\d{4,}$/.test(x.id)&&x.data&&x.data.clientName).slice(0,10000):[]}
     catch{return []}
@@ -81,8 +82,86 @@
   function datePart(iso){const parts=(iso||todayISO()).split('-');return (parts[2]||'01')+(parts[1]||'01')+(parts[0]||'2026').slice(-2)}
   function nextNumber(iso){const prefix='VC-Q-'+datePart(iso)+'-';let max=0;for(const record of records){if(record.id.startsWith(prefix)){max=Math.max(max,Number(record.id.slice(prefix.length))||0)}}return prefix+String(max+1).padStart(4,'0')}
   function calculateTotal(s){const sub=(s.items||[]).reduce((sum,item)=>sum+safeNum(item.qty)*safeNum(item.rate),0);const taxable=Math.max(0,sub-Math.min(sub,safeNum(s.discount)));return Math.round((taxable+taxable*safeNum(s.taxRate)/100)*100)/100}
+  function nextInvoiceNumber(iso){
+    const prefix='VC-INV-'+datePart(iso)+'-';
+    let max=0;
+    for(const record of records){
+      const id=record.invoice?.number||'';
+      if(id.startsWith(prefix))max=Math.max(max,Number(id.slice(prefix.length))||0);
+    }
+    return prefix+String(max+1).padStart(4,'0');
+  }
+  function resetInvoiceMode(){
+    invoiceRecord=null;
+    $('generatorPanel').classList.remove('invoice-mode');
+    $('invoiceToolbar').hidden=true;
+    $('invoiceShortcut').hidden=true;
+    show('generatorHeading','Quotation Generator');
+    show('generatorDescription','Create a professional, itemized quotation for a VIZCAM customer.');
+    show('generatorPill','● Quotation workspace');
+    show('previewModeTitle','Live Quotation Preview');
+    show('printDocType','QUOTATION');
+    show('printClientHeading','PREPARED FOR');
+    show('printNumberLabel','Quotation No.');
+    show('printDateLabel','Date');
+    show('printValidLabel','Valid Until');
+    show('printTotalLabel','Grand Total');
+    show('printTermsHeading','TERMS & CONDITIONS');
+    $('printSourceRow').hidden=true;
+    $('quotePaper').setAttribute('aria-label','Printable VIZCAM quotation');
+  }
+  function renderInvoicePresentation(){
+    if(!invoiceRecord?.invoice)return;
+    const invoice=invoiceRecord.invoice;
+    show('printDocType','INVOICE');
+    show('printClientHeading','BILL TO');
+    show('printNumberLabel','Invoice No.');
+    show('printNumber',invoice.number);
+    show('printDateLabel','Invoice Date');
+    show('printDate',shortDate(invoice.date));
+    show('printValidLabel','Payment Status');
+    show('printValid','PAID'+(invoice.paidAt?' · '+new Date(invoice.paidAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):''));
+    show('printSource',invoiceRecord.id);
+    $('printSourceRow').hidden=false;
+    show('printTotalLabel','Invoice Total');
+    show('printTermsHeading','PAYMENT INFORMATION');
+    show('printTerms','Payment received in full. Items and applicable taxes reflect completed quotation '+invoiceRecord.id+'. Please retain this invoice for your records.');
+  }
+  function issueOrOpenInvoice(q){
+    if(!q||q.status!=='completed'){toast('Complete the quotation payment before issuing an invoice.');return}
+    if(!q.invoice){
+      if(!window.confirm('Create an invoice for completed quotation '+q.id+'? The invoice will keep a copy of the completed quotation details.'))return;
+      const now=new Date().toISOString();
+      const data=JSON.parse(JSON.stringify(q.data));
+      const invoice={number:nextInvoiceNumber(todayISO()),date:todayISO(),paidAt:q.paidAt||now,createdAt:now,data};
+      const updated={...q,invoice,updatedAt:now};
+      const previous=records;
+      records=records.map(x=>x.id===q.id?updated:x);
+      if(!persist()){records=previous;return}
+      q=updated;
+      renderOverview();
+      toast('Invoice issued: '+invoice.number);
+    }
+    if(!q.invoice?.data){toast('Invoice details are unavailable. Restore your quotation backup.');return}
+    chooseQuote(q);
+    invoiceRecord=q;
+    // The invoice uses the frozen data saved on its issue date.
+    fields.forEach(k=>{$(k).value=String(q.invoice.data[k]??'')});
+    items=(Array.isArray(q.invoice.data.items)?q.invoice.data.items:defaultItems).slice(0,40).map(x=>({...x}));
+    $('generatorPanel').classList.add('invoice-mode');
+    $('invoiceToolbar').hidden=false;
+    show('generatorHeading','Invoice');
+    show('generatorDescription','Issued from completed quotation '+q.id+'. Saved locally in this browser.');
+    show('generatorPill','● Paid invoice');
+    show('previewModeTitle','Invoice Preview');
+    show('invoiceIdentity',q.invoice.number);
+    show('invoiceSourceInfo','From '+q.id+' · Paid');
+    $('quotePaper').setAttribute('aria-label','Printable VIZCAM invoice '+q.invoice.number);
+    lineEditor();render();window.scrollTo(0,0);
+  }
   function expiryAfterToday(){const d=new Date();d.setDate(d.getDate()+15);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
   function newQuotation(){
+    resetInvoiceMode();
     fields.forEach(k=>{$(k).value=savedInitial[k]??''});
     $('quoteDate').value=todayISO();$('validUntil').value=expiryAfterToday();
     $('clientName').value='';$('clientPhone').value='';$('clientLocation').value='';$('clientGST').value='';
@@ -92,12 +171,16 @@
   }
   function chooseQuote(q){
     if(!q||!q.data)return;
+    resetInvoiceMode();
     fields.forEach(k=>{$(k).value=String(q.data[k]??savedInitial[k]??'')});
     $('quoteNumber').value=q.id;items=(Array.isArray(q.data.items)?q.data.items:defaultItems).slice(0,40).map(x=>({...x}));
     currentRecord=q.id;lineEditor();render();showPanel('generator');
+    $('invoiceShortcut').hidden=q.status!=='completed';
+    $('invoiceShortcut').textContent=q.invoice?'🧾 View Invoice':'🧾 Create Invoice';
     window.scrollTo(0,0);
   }
   function saveQuotation(){
+    if(invoiceRecord){toast('Invoices are read-only. Use Invoice PDF actions instead.');return false}
     const name=$('clientName').value.trim();
     if(!name){toast('Please enter customer name before saving.');$('clientName').focus();return false}
     let id=currentRecord||nextNumber($('quoteDate').value);
@@ -105,9 +188,9 @@
     $('quoteNumber').value=id;
     const s=state();s.quoteNumber=id;
     const older=records.find(x=>x.id===id);
-    if(older&&older.status==='completed'&&!window.confirm('This quotation is marked Paid. Save changes to the completed quotation?'))return false;
+    if(older&&older.status==='completed'&&!window.confirm('This quotation is marked Paid. Save changes to the completed quotation?'+(older.invoice?' Its issued invoice will not be modified.':'')))return false;
     if(older&&older.status==='rejected'&&!window.confirm('This quotation is Rejected. Save edits while keeping it in Rejected?'))return false;
-    const q={id,customer:name,date:s.quoteDate,total:calculateTotal(s),status:older?.status||'pending',paidAt:older?.paidAt||null,rejectedAt:older?.rejectedAt||null,createdAt:older?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),data:s};
+    const q={id,customer:name,date:s.quoteDate,total:calculateTotal(s),status:older?.status||'pending',paidAt:older?.paidAt||null,rejectedAt:older?.rejectedAt||null,invoice:older?.invoice||null,createdAt:older?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),data:s};
     const next=records.filter(x=>x.id!==id);next.push(q);next.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
     const before=records;records=next;
     if(!persist()){records=before;return false}
@@ -177,7 +260,13 @@
         const restore=document.createElement('button');restore.type='button';restore.textContent='Move to Pending';restore.className='restore-action';
         restore.addEventListener('click',()=>updateQuotationStatus(q,'pending'));actions.append(restore);
       }else{
-        const paid=document.createElement('small');paid.textContent=q.paidAt?'Paid '+new Date(q.paidAt).toLocaleDateString('en-IN'):'';actions.append(paid)
+        const paid=document.createElement('small');paid.textContent=q.paidAt?'Paid '+new Date(q.paidAt).toLocaleDateString('en-IN'):'';actions.append(paid);
+        const invoice=document.createElement('button');invoice.type='button';
+        invoice.textContent=q.invoice?'View Invoice':'Create Invoice';
+        invoice.className='invoice-action';
+        invoice.setAttribute('aria-label',(q.invoice?'View':'Create')+' invoice for quotation '+q.id);
+        invoice.addEventListener('click',()=>issueOrOpenInvoice(q));actions.append(invoice);
+        if(q.invoice){const number=document.createElement('small');number.textContent='Invoice: '+q.invoice.number;actions.append(number)}
       }
       tr.append(actions);body.append(tr);
     }
@@ -189,6 +278,7 @@
   $('addItem').addEventListener('click',()=>{if(items.length>=40){toast('Maximum 40 quotation items.');return}items.push({name:'New item / service',qty:1,unit:'Nos',rate:0});lineEditor();render()});
   $('quoteDate').addEventListener('change',()=>{if(!currentRecord){$('quoteNumber').value=nextNumber($('quoteDate').value);render()}});
   function printQuote(skipSave=false){
+    if(invoiceRecord){render();window.print();return}
     if(!skipSave&&!saveQuotation())return;
     showPanel('generator');
     render();
@@ -202,27 +292,36 @@
       const qty=safeNum(item.qty),rate=safeNum(item.rate);
       return (i+1)+'. '+(item.name||'Item')+' - '+qty+' '+(item.unit||'Nos')+' x '+money(rate)+' = '+money(qty*rate);
     });
+    const isInvoice=Boolean(invoiceRecord?.invoice);
+    const invoice=isInvoice?invoiceRecord.invoice:null;
     return [
       'VIZCAM | CCTV, Networking & Security Systems',
-      'Quotation: '+($('quoteNumber').value||''),
+      (isInvoice?'Invoice: '+invoice.number:'Quotation: '+($('quoteNumber').value||'')),
+      ...(isInvoice?['Original Quotation: '+invoiceRecord.id,'Payment Status: PAID']:[]),
       'Customer: '+q.clientName,
-      'Date: '+shortDate(q.quoteDate),
+      'Date: '+shortDate(isInvoice?invoice.date:q.quoteDate),
       'Installation location: '+(q.clientLocation||'Not specified'),
       '',
       'Items:',
       ...formattedItems,
       '',
-      'Grand Total: '+money(total),
-      'Valid Until: '+shortDate(q.validUntil),
+      (isInvoice?'Invoice Total: ':'Grand Total: ')+money(total),
+      ...(isInvoice?['Paid on: '+shortDate((invoice.paidAt||'').slice(0,10))]:['Valid Until: '+shortDate(q.validUntil)]),
       '',
       'Contact: +91 89438 54151 | service@vizcam.in',
       'www.vizcam.in'
     ].join('\n');
   }
   function openShareDialog(skipSave=false){
-    if(!skipSave&&!saveQuotation())return;
+    if(!invoiceRecord&&!skipSave&&!saveQuotation())return;
     render();
-    $('shareQuoteInfo').textContent=($('quoteNumber').value||'Quotation')+' · '+$('clientName').value+' · '+$('printTotal').textContent;
+    const isInvoice=Boolean(invoiceRecord?.invoice);
+    const number=isInvoice?invoiceRecord.invoice.number:($('quoteNumber').value||'Quotation');
+    show('shareTitle',isInvoice?'Share Invoice':'Share Quotation');
+    show('shareDocumentBadge',isInvoice?'VIZCAM INVOICE':'VIZCAM QUOTATION');
+    show('sharePdfDescription',isInvoice?'Share the complete paid invoice PDF on supported devices':'Share the complete quotation document on supported devices');
+    show('shareWhatsappDescription',isInvoice?'Share invoice number, payment status, items and total as text':'Share quotation number, customer, items and total as text');
+    $('shareQuoteInfo').textContent=number+' · '+$('clientName').value+' · '+$('printTotal').textContent;
     $('quoteShareDialog').showModal();
   }
   $('closeShare').addEventListener('click',()=>$('quoteShareDialog').close());
@@ -288,7 +387,7 @@
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
         pagebreak:{mode:['css','legacy'],avoid:['tr','.quote-bottom','.quote-terms','.approval-images','.sign-off']}
       }).from(paper).outputPdf('blob');
-      const name=($('quoteNumber').value||'VIZCAM-Quotation').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
+      const name=(invoiceRecord?.invoice?.number||$('quoteNumber').value||'VIZCAM-Quotation').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf';
       return new File([blob],name,{type:'application/pdf'});
     }finally{
       originals.forEach(item=>{item.img.setAttribute('src',item.src)});
@@ -318,7 +417,7 @@
       const file=await getPdfFile();
       if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
         try {
-          await navigator.share({files:[file],title:'VIZCAM Quotation '+$('quoteNumber').value,text:'Quotation for '+$('clientName').value});
+          await navigator.share({files:[file],title:(invoiceRecord?'VIZCAM Invoice ':'VIZCAM Quotation ')+(invoiceRecord?.invoice?.number||$('quoteNumber').value),text:(invoiceRecord?'Paid invoice for ':'Quotation for ')+$('clientName').value});
           $('quoteShareDialog').close();toast('Sharing completed.');
         }catch(e){if(e.name!=='AbortError')toast('Could not share PDF. Please try Download PDF.')}
       }else{
@@ -334,6 +433,31 @@
     const tab=window.open(url,'_blank','noopener,noreferrer');
     if(!tab)window.location.href=url;
     $('quoteShareDialog').close();
+  });
+
+  $('invoiceShortcut').addEventListener('click',()=>{
+    const q=records.find(x=>x.id===currentRecord);
+    if(q)issueOrOpenInvoice(q);
+    else toast('Select a completed quotation first.');
+  });
+  $('invoicePrint').addEventListener('click',()=>{
+    if(!invoiceRecord)return;
+    render();window.print();
+  });
+  $('invoiceDownload').addEventListener('click',async()=>{
+    if(!invoiceRecord||pdfBusy)return;
+    pdfBusy=true;$('invoiceDownload').disabled=true;
+    try{
+      const file=await getPdfFile();downloadFile(file);
+      toast('Invoice PDF downloaded: '+file.name);
+    }catch(e){toast('Invoice PDF unavailable. Use Print and choose Save as PDF.')}
+    finally{pdfBusy=false;$('invoiceDownload').disabled=false}
+  });
+  $('invoiceShare').addEventListener('click',()=>{
+    if(invoiceRecord)openShareDialog(true);
+  });
+  $('invoiceBack').addEventListener('click',()=>{
+    resetInvoiceMode();showPanel('overview','completed');window.scrollTo(0,0);
   });
 
   document.querySelectorAll('[data-quote-action]').forEach(button=>{

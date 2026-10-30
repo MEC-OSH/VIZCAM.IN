@@ -29,7 +29,8 @@ const URL='https://www.vizcam.in/';
         cookieYesTag:!!document.getElementById('cookieyes')
       };
     });
-    if(!state.tag||!state.deniedByDefault)throw Error('Google tag or consent-denied default missing: '+JSON.stringify(state));
+    if(!state.deniedByDefault)throw Error('Default analytics consent must be denied: '+JSON.stringify(state));
+    if(!state.tag)console.log('Expected under CookieYes basic mode: Google tag currently blocked before consent.');
     if(!state.cookieYesTag||!state.privacyButton)throw Error('CookieYes installation/settings control missing.');
     try{
       await page.waitForFunction(()=>typeof window.getCkyConsent==='function',{timeout:22000});
@@ -65,6 +66,8 @@ const URL='https://www.vizcam.in/';
           };
         });
         if(!accepted.accepted||!accepted.consentGranted||!accepted.pageViewQueued)throw Error('CookieYes acceptance was not propagated correctly: '+JSON.stringify(accepted));
+        await page.waitForFunction(()=>!!document.querySelector('script[src*="googletagmanager.com/gtag/js?id=G-72FYFHPDTC"]'),{timeout:18000});
+        console.log('PASS: Google tag loaded after CookieYes consent.');
         console.log('PASS: CookieYes acceptance propagated to GA4 consent and first page_view.');
       }else{
         console.log('NOTE: No visible accept button in runner region. CookieYes API available; manual preference test remains necessary.');

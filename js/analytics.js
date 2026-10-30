@@ -1,55 +1,20 @@
 'use strict';
 (function(){
-  // Google tag is initialized in the page head with consent denied by default.
-  // Analytics storage and measurement events are enabled only after opt-in.
-  const GA_ID = 'G-72FYFHPDTC';
-  const STORAGE_KEY = 'vizcam-analytics-consent-v1';
-  const banner = document.getElementById('vizcamAnalyticsConsent');
-  const accept = document.getElementById('vizcamAcceptAnalytics');
-  const reject = document.getElementById('vizcamRejectAnalytics');
-  const settings = document.getElementById('vizcamPrivacySettings');
-  if(!banner || !accept || !reject) return;
-  let analyticsActive = false;
-  let choice = null;
+  // CookieYes is the source of consent; no separate VIZCAM consent banner.
+  // GA4 is initialized with denied consent before CookieYes and the Google tag.
+  // No analytics event is sent until a visitor grants the analytics category.
+  let analyticsAllowed=false;
+  let pageViewSent=false;
 
-  try { choice = localStorage.getItem(STORAGE_KEY); } catch(error){}
+  function consentAllowed(){
+    if(typeof window.getCkyConsent!=='function')return false;
+    try{
+      const c=window.getCkyConsent();
+      return Boolean(c && c.isUserActionCompleted && c.categories && c.categories.analytics===true);
+    }catch(e){return false}
+  }
 
-  function store(value){
-    try { localStorage.setItem(STORAGE_KEY,value); } catch(error){}
-    choice=value;
-  }
-  function showBanner(){ banner.hidden=false; }
-  function hideBanner(){ banner.hidden=true; }
-
-  function enableAnalytics(){
-    if(analyticsActive) return;
-    if(typeof window.gtag!=='function'){
-      console.warn('VIZCAM: Google tag initialization unavailable.');
-      return;
-    }
-    analyticsActive=true;
-    window.gtag('consent','update',{
-      analytics_storage:'granted',
-      ad_storage:'denied',
-      ad_user_data:'denied',
-      ad_personalization:'denied'
-    });
-    window.gtag('event','page_view',{
-      page_title:document.title,
-      page_location:window.location.href
-    });
-  }
-  function denyAnalytics(){
-    if(typeof window.gtag==='function'){
-      window.gtag('consent','update',{
-        analytics_storage:'denied',
-        ad_storage:'denied',
-        ad_user_data:'denied',
-        ad_personalization:'denied'
-      });
-    }
-  }
-  function clearGACookies(){
+  function clearAnalyticsCookies(){
     document.cookie.split(';').forEach(function(part){
       const name=part.split('=')[0].trim();
       if(!/^_ga(?:_|$)/.test(name))return;
@@ -57,44 +22,55 @@
       document.cookie=name+'=; Max-Age=0; Path=/; Domain=.vizcam.in; SameSite=Lax';
     });
   }
-  function setChoice(value){
-    const wasActive=analyticsActive;
-    store(value);
-    hideBanner();
-    if(value==='accepted')enableAnalytics();
-    else {
-      denyAnalytics();
-      clearGACookies();
-      // Reset in-memory analytics state when a visitor withdraws consent.
-      if(wasActive)window.location.reload();
-    }
-  }
-  accept.addEventListener('click',function(){setChoice('accepted')});
-  reject.addEventListener('click',function(){setChoice('declined')});
-  if(settings)settings.addEventListener('click',function(){showBanner()});
-  if(choice==='accepted') enableAnalytics();
-  else if(choice!=='declined') showBanner();
 
-  function recordEvent(name,params){
-    if(!analyticsActive||typeof window.gtag!=='function')return;
-    window.gtag('event',name,params||{});
-  }
-  // Clicks are counted only; no WhatsApp message contents, phone numbers or user-entered location sent.
-  document.addEventListener('click',function(event){
-    const link=event.target.closest('a[href]');
-    if(!link)return;
-    const href=link.getAttribute('href')||'';
-    if(/^https:\/\/wa\.me\//i.test(href)){
-      recordEvent('contact',{method:'whatsapp'});
-    }else if(/^tel:/i.test(href)){
-      recordEvent('contact',{method:'phone'});
-    }else if(/^mailto:/i.test(href)){
-      recordEvent('contact',{method:'email'});
+  function syncCookieYesConsent(){
+    const allowed=consentAllowed();
+    const previouslyAllowed=analyticsAllowed;
+    analyticsAllowed=allowed;
+    if(typeof window.gtag==='function'){
+      // Keep advertising consent denied because VIZCAM uses only GA4 statistics.
+      window.gtag('consent','update',{
+        analytics_storage:allowed?'granted':'denied',
+        ad_storage:'denied',
+        ad_user_data:'denied',
+        ad_personalization:'denied'
+      });
+      if(allowed && !pageViewSent){
+        pageViewSent=true;
+        window.gtag('event','page_view',{
+          page_title:document.title,
+          page_location:window.location.href
+        });
+      }
     }
+    if(previouslyAllowed&&!allowed){
+      clearAnalyticsCookies();
+      pageViewSent=false;
+    }
+  }
+
+  // Initial cookie state, new consent, and future withdrawals.
+  document.addEventListener('cookieyes_banner_load',syncCookieYesConsent);
+  document.addEventListener('cookieyes_banner_loaded',syncCookieYesConsent);
+  document.addEventListener('cookieyes_consent_update',syncCookieYesConsent);
+  syncCookieYesConsent();
+
+  function recordEvent(eventName,detail){
+    if(!analyticsAllowed || typeof window.gtag!=='function')return;
+    window.gtag('event',eventName,detail||{});
+  }
+  // Keep product/visitor message contents out of Google Analytics.
+  document.addEventListener('click',function(e){
+    const anchor=e.target.closest('a[href]');
+    if(!anchor)return;
+    const href=anchor.getAttribute('href')||'';
+    if(/^https:\/\/wa\.me\//i.test(href))recordEvent('contact',{method:'whatsapp'});
+    else if(/^tel:/i.test(href))recordEvent('contact',{method:'phone'});
+    else if(/^mailto:/i.test(href))recordEvent('contact',{method:'email'});
   },true);
+
   const enquiry=document.getElementById('enquiry-form');
   if(enquiry)enquiry.addEventListener('submit',function(){
-    if(!enquiry.checkValidity())return;
-    recordEvent('generate_lead',{method:'whatsapp_enquiry'});
+    if(enquiry.checkValidity())recordEvent('generate_lead',{method:'whatsapp_enquiry'});
   },true);
 })();

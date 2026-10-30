@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' https://www.googletagmanager.com; script-src-attr 'none'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https://images.unsplash.com https://www.googletagmanager.com https://*.google-analytics.com data:; connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' https://www.googletagmanager.com https://cdn-cookieyes.com https://*.cookieyes.com; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn-cookieyes.com https://*.cookieyes.com; font-src 'self' https://fonts.gstatic.com https://cdn-cookieyes.com data:; img-src 'self' https://images.unsplash.com https://www.googletagmanager.com https://*.google-analytics.com https://cdn-cookieyes.com https://*.cookieyes.com data:; connect-src 'self' https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com https://cdn-cookieyes.com https://*.cookieyes.com; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- Google Analytics 4: initialize denied consent before the Google tag executes. -->
 <script src="js/ga4-init.js?v=20261030-tagfix"></script>
+<script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/014019ae73df6d6fc66768e0/script.js"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-72FYFHPDTC"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
@@ -436,19 +437,9 @@
 <footer class="site-footer"><div class="wrap">
   <div class="footer-top"><div><img src="assets/vizcam-logo-2026.webp" width="118" height="78" alt="VIZCAM logo"><p>CCTV, networking and security systems<br>Manjeri, Kerala.</p></div><div class="footer-links"><a href="#home">Home</a><a href="#services">Services</a><a href="#products">Products</a><a href="#photos">Photos</a><a href="#leadership">Leadership</a><a href="#contact">Contact</a></div><div class="footer-contact"><a href="tel:+918943854151">+91 89438 54151</a><a href="mailto:service@vizcam.in">service@vizcam.in</a><a href="https://wa.me/918943854151" target="_blank" rel="noopener noreferrer">WhatsApp VIZCAM ↗</a></div></div>
   <div class="footer-bottom"><span>© <span id="year">2026</span> VIZCAM. All rights reserved.</span><span>Illustrative photography by independent contributors on <a href="https://unsplash.com/" target="_blank" rel="noopener noreferrer">Unsplash</a>.</span></div>
-<button type="button" id="vizcamPrivacySettings" class="vizcam-privacy-trigger">Privacy settings</button></div></footer>
-<div id="vizcamAnalyticsConsent" class="vizcam-analytics-consent" role="region" aria-label="Analytics privacy preferences" hidden>
-  <div class="vizcam-analytics-consent-text">
-    <strong>Website analytics</strong>
-    <p>The Google tag loads with analytics cookies disabled by default and may send limited consent-state signals. Accept to enable website analytics, or decline to keep measurement cookies off. Your enquiry form stays on WhatsApp.</p>
-  </div>
-  <div class="vizcam-analytics-consent-actions">
-    <button type="button" id="vizcamRejectAnalytics">Decline</button>
-    <button type="button" id="vizcamAcceptAnalytics">Accept analytics</button>
-  </div>
-</div>
+<button type="button" class="vizcam-privacy-trigger cky-banner-element">Cookie Settings</button></div></footer>
 <a class="floating-whatsapp" href="https://wa.me/918943854151?text=Hi%20VIZCAM%2C%20I%20need%20CCTV%20installation%20or%20service." target="_blank" rel="noopener noreferrer" aria-label="Chat with VIZCAM on WhatsApp"><span aria-hidden="true">☎</span><span>WhatsApp</span></a>
 <script src="js/script.js?v=20261029-a11y1" defer></script>
-<script src="js/analytics.js?v=20261030-tagfix" defer></script>
+<script src="js/analytics.js?v=20261030-cookieyes" defer></script>
 </body>
 </html>
